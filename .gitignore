@@ -1,4 +1,6 @@
-.github
+.github/prompts/
+.github/skills/
+.github/.10x-cli-manifest.json
 
 # from 10x-astro-starter
 # build output
