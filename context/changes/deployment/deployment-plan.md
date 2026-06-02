@@ -13,8 +13,8 @@ Fixes two starter template leftovers that would register the wrong Worker name i
 ## Phase 2 — Cloudflare account setup (human, one-time) ✅ DONE
 - [x] Create or verify Cloudflare account at dash.cloudflare.com
 - [x] `npx wrangler login` — opens browser, authenticates wrangler locally
-- [x] Note Account ID from Cloudflare dashboard right-hand sidebar (needed for CI) stored in GitHub secret ``CLOUDFLARE_ACCOUNT_ID``
-- [x] Create API token: dash.cloudflare.com/profile/api-tokens → "Create Token" → "Edit Cloudflare Workers" template → scope to the emu-parking-manager Worker stored in GitHub secret ``CLOUDFLARE_API_TOKEN``
+- [x] Note Account ID from Cloudflare dashboard right-hand sidebar (needed for CI) — stored in GitHub secret `CLOUDFLARE_ACCOUNT_ID`
+- [x] Create API token: dash.cloudflare.com/profile/api-tokens → "Create Token" → "Edit Cloudflare Workers" template → scope to the emu-parking-manager Worker — stored in GitHub secret `CLOUDFLARE_API_TOKEN`
 
 ## Phase 3 — Provision Supabase secrets on the Worker
 Secrets must exist before the first request hits the Worker; `astro:env` reads them from the Workers runtime env.
@@ -43,27 +43,27 @@ Secrets must exist before the first request hits the Worker; `astro:env` reads t
 - [x] `npx wrangler deploy --dry-run` — validates wrangler.jsonc, catches config errors before touching prod
 - [x] `npx wrangler deploy` — deploys Worker; live at https://emu-parking-manager.dariusz-sowada.workers.dev
   - KV Namespace `emu-parking-manager-session` auto-provisioned for sessions
-  - workers.dev subdomain `dariusz-sowada` registered
+  - gworkers.dev subdomain `dariusz-sowada` registered
 
 ## Phase 5 — Smoke test (human)
-- [ ] Open `https://emu-parking-manager.YOUR_SUBDOMAIN.workers.dev` — home page loads (HTTP 200)
-- [ ] Open `/auth/signin` — page loads (exercises SSR + middleware + cookie read)
-- [ ] `npx wrangler tail emu-parking-manager --format pretty` — watch for errors for 30 seconds; specifically watch for `1101 Worker threw exception` (CPU cap) or `undefined` values (missing secrets)
+- [x] Open `https://emu-parking-manager.dariusz-sowada.workers.dev` — home page loads (HTTP 200)
+- [x] Open `/auth/signin` — page loads (exercises SSR + middleware + cookie read)
+- [x] `npx wrangler tail emu-parking-manager --format pretty` — watch for errors for 30 seconds; specifically watch for `1101 Worker threw exception` (CPU cap) or `undefined` values (missing secrets)
 
 ## Phase 6 — Supabase redirect URL (human, post-go-live)
 Required for email-confirmation auth flow to work on the deployed URL.
 
-- [ ] Supabase dashboard → Authentication → URL Configuration → Site URL → set to `https://emu-parking-manager.YOUR_SUBDOMAIN.workers.dev`
-- [ ] Add `https://emu-parking-manager.YOUR_SUBDOMAIN.workers.dev/**` to Redirect URLs allowlist
+- [x] Supabase dashboard → Authentication → URL Configuration → Site URL → set to `https://emu-parking-manager.dariusz-sowada.workers.dev`
+- [x] Add `https://emu-parking-manager.dariusz-sowada.workers.dev/**` to Redirect URLs allowlist
 
 ## Phase 7 — CI auto-deploy wiring (agent + human)
-- [ ] Update `.github/workflows/ci.yml`: add `deploy` job that runs after `ci` succeeds on push to `master`, using `cloudflare/wrangler-action@v3` with `accountId` input (required — without it CI fails with "No account id found")
-- [ ] Add GitHub repo secrets (Settings → Secrets → Actions):
+- [x] Update `.github/workflows/ci.yml`: add `deploy` job that runs after `ci` succeeds on push to `master`, using `cloudflare/wrangler-action@v3` with `accountId` input (required — without it CI fails with "No account id found")
+- [x] Add GitHub repo secrets (Settings → Secrets → Actions):
   - `CLOUDFLARE_API_TOKEN` — the token from Phase 2
   - `CLOUDFLARE_ACCOUNT_ID` — the Account ID from Phase 2
   - `SUPABASE_URL` — same value as Workers secret (needed for CI build step)
   - `SUPABASE_KEY` — same value as Workers secret (needed for CI build step)
-- [ ] Push a test commit to `master` → confirm the `deploy` job passes in GitHub Actions
+- [x] Push a test commit to `master` → confirm the `deploy` job passes in GitHub Actions
 
 ## CI job shape (for Phase 7)
 
