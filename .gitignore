@@ -2,6 +2,8 @@
 .github/skills/
 .github/.10x-cli-manifest.json
 
+.vscode/
+
 # from 10x-astro-starter
 # build output
 dist/
