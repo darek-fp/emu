@@ -1,0 +1,12 @@
+---
+change_id: auth-rbac-scaffold
+title: Wire Admin/Operator RBAC into Supabase auth
+status: plan_reviewed
+created: 2026-06-04
+updated: 2026-06-04
+archived_at: null
+---
+
+## Notes
+
+F-01 from @context\foundation\roadmap.md
