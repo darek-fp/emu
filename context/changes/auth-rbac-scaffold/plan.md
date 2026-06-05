@@ -317,32 +317,32 @@ No data migrations required for F-01. Role storage in `app_metadata` is handled 
 
 #### Automated
 
-- [x] 1.1 Lint passes
-- [x] 1.2 Build passes
+- [x] 1.1 Lint passes — 61568c81
+- [x] 1.2 Build passes — 61568c81
 
 #### Manual
 
-- [x] 1.3 Unauthenticated /dashboard redirects to /auth/signin?next=%2Fdashboard
-- [x] 1.4 Unauthenticated /admin redirects to /auth/signin?next=%2Fadmin
-- [x] 1.5 No-role user accessing /dashboard redirects to /auth/signin
-- [x] 1.6 Operator can access /dashboard; /admin redirects to /dashboard
-- [x] 1.7 Admin can access both /dashboard and /admin
+- [x] 1.3 Unauthenticated /dashboard redirects to /auth/signin?next=%2Fdashboard — 61568c81
+- [x] 1.4 Unauthenticated /admin redirects to /auth/signin?next=%2Fadmin — 61568c81
+- [x] 1.5 No-role user accessing /dashboard redirects to /auth/signin — 61568c81
+- [x] 1.6 Operator can access /dashboard; /admin redirects to /dashboard — 61568c81
+- [x] 1.7 Admin can access both /dashboard and /admin — 61568c81
 
 ### Phase 2: Disable self-registration
 
 #### Automated
 
-- [ ] 2.1 Lint passes
-- [ ] 2.2 Build passes
+- [x] 2.1 Lint passes
+- [x] 2.2 Build passes
 
 #### Manual
 
-- [ ] 2.3 /auth/signup redirects to /auth/signin
-- [ ] 2.4 POST /api/auth/signup redirects to /auth/signin (no account created)
-- [ ] 2.5 Sign-in page has no signup link
-- [ ] 2.6 Topbar has no signup link when unauthenticated
-- [ ] 2.7 Landing page has no Sign Up button
-- [ ] 2.8 Direct POST to Supabase auth signup endpoint returns error
+- [x] 2.3 /auth/signup redirects to /auth/signin
+- [x] 2.4 POST /api/auth/signup redirects to /auth/signin (no account created)
+- [x] 2.5 Sign-in page has no signup link
+- [x] 2.6 Topbar has no signup link when unauthenticated
+- [x] 2.7 Landing page has no Sign Up button
+- [x] 2.8 Direct POST to Supabase auth signup endpoint returns error
 
 ### Phase 3: Initial admin seed
 
