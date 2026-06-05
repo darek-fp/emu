@@ -332,25 +332,25 @@ No data migrations required for F-01. Role storage in `app_metadata` is handled 
 
 #### Automated
 
-- [x] 2.1 Lint passes
-- [x] 2.2 Build passes
+- [x] 2.1 Lint passes — 02f9127b
+- [x] 2.2 Build passes — 02f9127b
 
 #### Manual
 
-- [x] 2.3 /auth/signup redirects to /auth/signin
-- [x] 2.4 POST /api/auth/signup redirects to /auth/signin (no account created)
-- [x] 2.5 Sign-in page has no signup link
-- [x] 2.6 Topbar has no signup link when unauthenticated
-- [x] 2.7 Landing page has no Sign Up button
-- [x] 2.8 Direct POST to Supabase auth signup endpoint returns error
+- [x] 2.3 /auth/signup redirects to /auth/signin — 02f9127b
+- [x] 2.4 POST /api/auth/signup redirects to /auth/signin (no account created) — 02f9127b
+- [x] 2.5 Sign-in page has no signup link — 02f9127b
+- [x] 2.6 Topbar has no signup link when unauthenticated — 02f9127b
+- [x] 2.7 Landing page has no Sign Up button — 02f9127b
+- [x] 2.8 Direct POST to Supabase auth signup endpoint returns error — 02f9127b
 
 ### Phase 3: Initial admin seed
 
 #### Automated
 
-- [ ] 3.1 npx supabase db seed runs without error
+- [x] 3.1 npx supabase db seed runs without error
 
 #### Manual
 
-- [ ] 3.2 Seeded admin@emu.dev / admin1234 signs in successfully
-- [ ] 3.3 Seeded admin account resolves role "admin" (can access /admin)
+- [x] 3.2 Seeded admin@emu.dev / admin1234 signs in successfully
+- [x] 3.3 Seeded admin account resolves role "admin" (can access /admin)
