@@ -257,12 +257,14 @@ Write `supabase/seed.sql` to provision the first Admin account in the local Supa
 - `id = '00000000-0000-0000-0000-000000000001'::uuid` (fixed UUID for idempotency)
 - `raw_app_meta_data = '{"provider": "email", "providers": ["email"], "role": "admin"}'`
 - `raw_user_meta_data = '{}'`
-- `encrypted_password = crypt('admin1234', gen_salt('bf'))` (dev-only — change before production use)
+- `encrypted_password = crypt('admin1234', gen_salt('bf'))` (dev-only — change before production use). **Implementation note**: the seed uses a pre-computed bcrypt literal instead of `crypt()` to avoid requiring the pgcrypto extension to be enabled at seed time. The hash is equivalent and has been verified correct.
 - `email_confirmed_at = now()` (skip email confirmation in local dev)
 - `aud = 'authenticated'`, `role = 'authenticated'`
 - Use `INSERT ... ON CONFLICT (id) DO NOTHING` so the seed is safe to run multiple times without error (both via `supabase db reset` and standalone `supabase db seed`).
 
 Include a prominent `-- DEVELOPMENT ONLY` header comment and instructions for applying: `npx supabase db seed` (requires a running local Supabase instance via `npx supabase start`).
+
+**Additional required insert**: GoTrue requires a corresponding row in `auth.identities` for email/password authentication to work even when the user row exists. The seed also inserts one identity record for the admin user with `provider = 'email'`.
 
 ---
 

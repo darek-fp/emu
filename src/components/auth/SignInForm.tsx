@@ -7,26 +7,27 @@ import { ServerError } from "@/components/auth/ServerError";
 
 interface Props {
   serverError?: string | null;
+  next?: string | null;
 }
 
-export default function SignInForm({ serverError }: Props) {
+export default function SignInForm({ serverError, next }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   function validate() {
-    const next: typeof errors = {};
+    const errs: typeof errors = {};
     if (!email.trim()) {
-      next.email = "Email is required";
+      errs.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      next.email = "Enter a valid email address";
+      errs.email = "Enter a valid email address";
     }
     if (!password) {
-      next.password = "Password is required";
+      errs.password = "Password is required";
     }
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   }
 
   function clearError(field: keyof typeof errors) {
@@ -39,8 +40,10 @@ export default function SignInForm({ serverError }: Props) {
     }
   }
 
+  const action = next ? `/api/auth/signin?next=${encodeURIComponent(next)}` : "/api/auth/signin";
+
   return (
-    <form method="POST" action="/api/auth/signin" className="space-y-4" onSubmit={handleSubmit} noValidate>
+    <form method="POST" action={action} className="space-y-4" onSubmit={handleSubmit} noValidate>
       <FormField
         id="email"
         type="email"

@@ -62,7 +62,8 @@ const reactConfig = tseslint.config({
 const astroConfig = tseslint.config({
   files: ["**/*.astro"],
   rules: {
-    // astro-eslint-parser incompatibility: no-misused-promises crashes on return statements in frontmatter
+    // astro-eslint-parser incompatibility: no-misused-promises crashes on return statements in frontmatter.
+    // Re-enable when https://github.com/ota-meshi/eslint-plugin-astro/issues/388 is resolved.
     "@typescript-eslint/no-misused-promises": "off",
     "astro/no-set-html-directive": "error",
     "astro/no-unused-css-selector": "warn",

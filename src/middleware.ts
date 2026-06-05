@@ -31,7 +31,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (!user) {
       return context.redirect(`/auth/signin?next=${encodeURIComponent(pathname)}`);
     }
-    if (isOperatorRoute && role === null) {
+    if (isOperatorRoute && role !== "operator" && role !== "admin") {
       return context.redirect("/auth/signin");
     }
     if (isAdminRoute && role !== "admin") {
