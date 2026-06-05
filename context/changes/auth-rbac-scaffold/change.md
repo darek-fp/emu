@@ -1,9 +1,9 @@
 ---
 change_id: auth-rbac-scaffold
 title: Wire Admin/Operator RBAC into Supabase auth
-status: plan_reviewed
+status: implementing
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-05
 archived_at: null
 ---
 

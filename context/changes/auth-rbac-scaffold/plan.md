@@ -317,16 +317,16 @@ No data migrations required for F-01. Role storage in `app_metadata` is handled 
 
 #### Automated
 
-- [ ] 1.1 Lint passes
-- [ ] 1.2 Build passes
+- [x] 1.1 Lint passes
+- [x] 1.2 Build passes
 
 #### Manual
 
-- [ ] 1.3 Unauthenticated /dashboard redirects to /auth/signin?next=%2Fdashboard
-- [ ] 1.4 Unauthenticated /admin redirects to /auth/signin?next=%2Fadmin
-- [ ] 1.5 No-role user accessing /dashboard redirects to /auth/signin
-- [ ] 1.6 Operator can access /dashboard; /admin redirects to /dashboard
-- [ ] 1.7 Admin can access both /dashboard and /admin
+- [x] 1.3 Unauthenticated /dashboard redirects to /auth/signin?next=%2Fdashboard
+- [x] 1.4 Unauthenticated /admin redirects to /auth/signin?next=%2Fadmin
+- [x] 1.5 No-role user accessing /dashboard redirects to /auth/signin
+- [x] 1.6 Operator can access /dashboard; /admin redirects to /dashboard
+- [x] 1.7 Admin can access both /dashboard and /admin
 
 ### Phase 2: Disable self-registration
 
