@@ -348,9 +348,9 @@ No data migrations required for F-01. Role storage in `app_metadata` is handled 
 
 #### Automated
 
-- [x] 3.1 npx supabase db seed runs without error
+- [x] 3.1 npx supabase db seed runs without error — ca16f56f
 
 #### Manual
 
-- [x] 3.2 Seeded admin@emu.dev / admin1234 signs in successfully
-- [x] 3.3 Seeded admin account resolves role "admin" (can access /admin)
+- [x] 3.2 Seeded admin@emu.dev / admin1234 signs in successfully — ca16f56f
+- [x] 3.3 Seeded admin account resolves role "admin" (can access /admin) — ca16f56f
