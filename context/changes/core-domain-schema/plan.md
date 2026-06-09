@@ -330,10 +330,10 @@ The project has no test suite (per project baseline). Success criteria rely on `
 
 #### Automated
 
-- [x] 3.1 All migrations apply cleanly (npx supabase db reset exits 0)
-- [x] 3.2 TypeScript types generated without error
-- [x] 3.3 Lint passes
-- [x] 3.4 Build passes
+- [x] 3.1 All migrations apply cleanly (npx supabase db reset exits 0) — 7f30bfd0
+- [x] 3.2 TypeScript types generated without error — 7f30bfd0
+- [x] 3.3 Lint passes — 7f30bfd0
+- [x] 3.4 Build passes — 7f30bfd0
 
 #### Manual
 

@@ -1,9 +1,9 @@
 ---
 change_id: core-domain-schema
 title: Land core domain schema migrations with RLS
-status: implementing
+status: implemented
 created: 2026-06-05
-updated: 2026-06-08
+updated: 2026-06-09
 archived_at: null
 ---
 
