@@ -308,9 +308,9 @@ The project has no test suite (per project baseline). Success criteria rely on `
 
 #### Manual
 
-- [ ] 1.4 sectors and pricing_tiers visible in Studio with RLS enabled
-- [ ] 1.5 updated_at trigger fires on UPDATE
-- [ ] 1.6 Partial unique index enforced (two active tiers rejected)
+- [x] 1.4 sectors and pricing_tiers visible in Studio with RLS enabled
+- [x] 1.5 updated_at trigger fires on UPDATE
+- [x] 1.6 Partial unique index enforced (two active tiers rejected)
 
 ### Phase 2: Reservations table
 
@@ -322,9 +322,9 @@ The project has no test suite (per project baseline). Success criteria rely on `
 
 #### Manual
 
-- [ ] 2.4 reservations table visible in Studio with all columns
-- [ ] 2.5 departure_after_arrival CHECK constraint enforced
-- [ ] 2.6 Status enum CHECK constraint enforced
+- [x] 2.4 reservations table visible in Studio with all columns
+- [x] 2.5 departure_after_arrival CHECK constraint enforced
+- [x] 2.6 Status enum CHECK constraint enforced
 
 ### Phase 3: Cancellation log and TypeScript types
 
@@ -337,6 +337,6 @@ The project has no test suite (per project baseline). Success criteria rely on `
 
 #### Manual
 
-- [ ] 3.5 All four domain tables visible in Studio with RLS enabled on each
-- [ ] 3.6 src/database.types.ts exists and contains domain table types
-- [ ] 3.7 npx supabase db reset completes with seed intact (admin@emu.dev still works)
+- [x] 3.5 All four domain tables visible in Studio with RLS enabled on each
+- [x] 3.6 src/database.types.ts exists and contains domain table types
+- [x] 3.7 npx supabase db reset completes with seed intact (admin@emu.dev still works)
