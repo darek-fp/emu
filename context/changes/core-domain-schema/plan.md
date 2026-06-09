@@ -302,9 +302,9 @@ The project has no test suite (per project baseline). Success criteria rely on `
 
 #### Automated
 
-- [ ] 1.1 Migrations apply cleanly (npx supabase db reset exits 0)
-- [ ] 1.2 Lint passes
-- [ ] 1.3 Build passes
+- [x] 1.1 Migrations apply cleanly (npx supabase db reset exits 0)
+- [x] 1.2 Lint passes
+- [x] 1.3 Build passes
 
 #### Manual
 
