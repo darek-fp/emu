@@ -111,9 +111,7 @@ try {
       <div class="space-y-6">
         <div class="space-y-4">
           <div>
-            <label for="formSectorName" class="mb-1 block text-sm font-medium text-white/80">
-              Sector Name
-            </label>
+            <label for="formSectorName" class="mb-1 block text-sm font-medium text-white/80"> Sector Name </label>
             <input
               id="formSectorName"
               type="text"
@@ -123,9 +121,7 @@ try {
             <span id="nameError" class="mt-1 hidden text-sm text-red-400"></span>
           </div>
           <div>
-            <label for="formSectorCount" class="mb-1 block text-sm font-medium text-white/80">
-              Spot Count
-            </label>
+            <label for="formSectorCount" class="mb-1 block text-sm font-medium text-white/80"> Spot Count </label>
             <input
               id="formSectorCount"
               type="number"
@@ -268,7 +264,12 @@ try {
           isValid = false;
         }
       } else if (editingMode === "edit") {
-        // For edit mode, only validate count
+        // For edit mode, validate both name and count
+        if (!nameInput.value.trim()) {
+          nameError?.classList.remove("hidden");
+          if (nameError) (nameError as HTMLElement).textContent = "Sector name cannot be empty";
+          isValid = false;
+        }
         if (!countInput.value || parseInt(countInput.value) <= 0) {
           countError?.classList.remove("hidden");
           if (countError)
