@@ -1,0 +1,357 @@
+---
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { createClient } from "@/lib/supabase";
+import type { Database } from "@/database.types";
+
+type Sector = Database["public"]["Tables"]["sectors"]["Row"];
+
+let sectors: Sector[] = [];
+let error: string | null = null;
+
+try {
+  const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+  if (!supabase) {
+    error = "Database client unavailable";
+  } else {
+    const { data, error: queryError } = await supabase
+      .from("sectors")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (queryError) {
+      error = `Failed to load sectors: ${queryError.message}`;
+    } else {
+      sectors = data as Sector[];
+    }
+  }
+} catch (err) {
+  error = err instanceof Error ? err.message : "Unknown error";
+}
+---
+
+<AdminLayout title="Parking Structure">
+  <div class="space-y-8">
+    {
+      error && (
+        <div class="rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+          <p class="text-red-400">{error}</p>
+        </div>
+      )
+    }
+
+    <div>
+      <h1 class="mb-2 text-3xl font-bold text-white">Parking Structure Configuration</h1>
+      <p class="text-white/70">Manage sectors and parking spot counts for your lot.</p>
+    </div>
+
+    <div class="rounded-lg border border-white/10 bg-white/5 p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-white">Current Structure</h2>
+        <button
+          id="addNewBtn"
+          type="button"
+          class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+        >
+          + Add Sector
+        </button>
+      </div>
+      {
+        sectors.length === 0 ? (
+          <div class="py-8 text-center">
+            <p class="text-white/70">No sectors configured yet.</p>
+          </div>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-white">
+              <thead class="border-b border-white/10 bg-white/10">
+                <tr>
+                  <th class="px-6 py-3 text-left font-semibold">Sector Name</th>
+                  <th class="px-6 py-3 text-right font-semibold">Spot Count</th>
+                  <th class="px-6 py-3 text-right font-semibold">Created</th>
+                  <th class="px-6 py-3 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sectors.map((sector, index) => (
+                  <tr
+                    key={sector.id}
+                    class:list={`border-t border-white/10 ${
+                      index % 2 === 0 ? "bg-white/0" : "bg-white/5"
+                    } transition-colors hover:bg-white/10`}
+                  >
+                    <td class="px-6 py-4">{sector.name}</td>
+                    <td class="px-6 py-4 text-right font-mono">{sector.spot_count}</td>
+                    <td class="px-6 py-4 text-right text-white/60">
+                      {new Date(sector.created_at).toLocaleDateString()}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <button
+                        class="editBtn rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                        data-sector-id={sector.id}
+                        data-sector-name={sector.name}
+                        data-sector-count={sector.spot_count}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </div>
+
+    <div id="formContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-xl font-semibold text-white" id="formTitle">Add New Sector</h2>
+      <p class="mb-4 text-white/70" id="formDescription">Create a new parking sector.</p>
+
+      <div class="space-y-6">
+        <div class="space-y-4">
+          <div>
+            <label for="formSectorName" class="mb-1 block text-sm font-medium text-white/80">
+              Sector Name
+            </label>
+            <input
+              id="formSectorName"
+              type="text"
+              placeholder="e.g., Main Lot, North Parking"
+              class="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+            <span id="nameError" class="mt-1 hidden text-sm text-red-400"></span>
+          </div>
+          <div>
+            <label for="formSectorCount" class="mb-1 block text-sm font-medium text-white/80">
+              Spot Count
+            </label>
+            <input
+              id="formSectorCount"
+              type="number"
+              placeholder="e.g., 50"
+              class="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+            <span id="countError" class="mt-1 hidden text-sm text-red-400"></span>
+          </div>
+        </div>
+
+        {
+          sectors.length > 0 && (
+            <div id="existingSectorsContainer" class="hidden">
+              <h3 class="mb-3 text-lg font-medium text-white">Update Other Sectors</h3>
+              <div class="space-y-4">
+                {sectors.map((sector) => (
+                  <div key={sector.id} class="otherSectorInput" data-sector-id={sector.id}>
+                    <label for={`other_${sector.id}`} class="mb-1 block text-sm font-medium text-white/80">
+                      {sector.name}
+                    </label>
+                    <input
+                      id={`other_${sector.id}`}
+                      type="number"
+                      value={sector.spot_count}
+                      data-sector-id={sector.id}
+                      data-original-count={sector.spot_count}
+                      class="sectorUpdate w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    />
+                    <span id={`updateError_${sector.id}`} class="mt-1 hidden text-sm text-red-400" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        <span id="submitError" class="block hidden text-sm text-red-400"></span>
+
+        <div class="flex gap-3">
+          <button
+            id="submitBtn"
+            type="button"
+            class="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Save Changes
+          </button>
+          <button
+            id="cancelBtn"
+            type="button"
+            class="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const formContainer = document.getElementById("formContainer");
+    const formTitle = document.getElementById("formTitle");
+    const formDescription = document.getElementById("formDescription");
+    const existingSectorsContainer = document.getElementById("existingSectorsContainer");
+    const nameInput = document.getElementById("formSectorName") as HTMLInputElement;
+    const countInput = document.getElementById("formSectorCount") as HTMLInputElement;
+    const nameError = document.getElementById("nameError");
+    const countError = document.getElementById("countError");
+    const submitError = document.getElementById("submitError");
+    const submitBtn = document.getElementById("submitBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const addNewBtn = document.getElementById("addNewBtn");
+    const editBtns = document.querySelectorAll(".editBtn");
+    const sectorUpdates = document.querySelectorAll(".sectorUpdate");
+
+    let editingMode: "add" | "edit" | null = null;
+    let editingSectorId: string | null = null;
+
+    const showForm = (mode: "add" | "edit", sectorId?: string) => {
+      editingMode = mode;
+      editingSectorId = sectorId || null;
+
+      if (mode === "add") {
+        formTitle.textContent = "Add New Sector";
+        formDescription.textContent = "Create a new parking sector.";
+        nameInput.value = "";
+        countInput.value = "";
+        if (existingSectorsContainer) {
+          existingSectorsContainer.classList.add("hidden");
+        }
+      } else if (mode === "edit" && sectorId) {
+        formTitle.textContent = "Edit Sector";
+        formDescription.textContent = "Update sector name and spot count.";
+        if (existingSectorsContainer) {
+          existingSectorsContainer.classList.add("hidden");
+        }
+        // Populate form with existing values
+        const btn = document.querySelector(`[data-sector-id="${sectorId}"]`) as HTMLElement;
+        if (btn) {
+          const name = btn.dataset.sectorName || "";
+          const count = btn.dataset.sectorCount || "";
+          nameInput.value = name;
+          countInput.value = count;
+          nameInput.disabled = false;
+        }
+      }
+
+      formContainer?.classList.remove("hidden");
+      nameInput.focus();
+    };
+
+    const hideForm = () => {
+      formContainer?.classList.add("hidden");
+      editingMode = null;
+      editingSectorId = null;
+      nameInput.disabled = false;
+      nameError?.classList.add("hidden");
+      countError?.classList.add("hidden");
+      submitError?.classList.add("hidden");
+    };
+
+    const validateForm = (): boolean => {
+      let isValid = true;
+
+      nameError?.classList.add("hidden");
+      countError?.classList.add("hidden");
+      submitError?.classList.add("hidden");
+
+      if (editingMode === "add") {
+        // For add mode, both fields required
+        if (!nameInput.value.trim()) {
+          nameError?.classList.remove("hidden");
+          if (nameError) (nameError as HTMLElement).textContent = "Sector name is required";
+          isValid = false;
+        }
+        if (!countInput.value || parseInt(countInput.value) <= 0) {
+          countError?.classList.remove("hidden");
+          if (countError)
+            (countError as HTMLElement).textContent =
+              parseInt(countInput.value) <= 0 ? "Spot count must be greater than 0" : "Spot count is required";
+          isValid = false;
+        }
+      } else if (editingMode === "edit") {
+        // For edit mode, only validate count
+        if (!countInput.value || parseInt(countInput.value) <= 0) {
+          countError?.classList.remove("hidden");
+          if (countError)
+            (countError as HTMLElement).textContent =
+              parseInt(countInput.value) <= 0 ? "Spot count must be greater than 0" : "Spot count is required";
+          isValid = false;
+        }
+      }
+
+      return isValid;
+    };
+
+    addNewBtn?.addEventListener("click", () => showForm("add"));
+    cancelBtn?.addEventListener("click", hideForm);
+
+    editBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const sectorId = (btn as HTMLElement).dataset.sectorId;
+        showForm("edit", sectorId);
+      });
+    });
+
+    submitBtn?.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      if (!validateForm()) {
+        return;
+      }
+
+      const operations: object[] = [];
+
+      if (editingMode === "add" && nameInput.value.trim() && countInput.value) {
+        operations.push({
+          type: "add",
+          name: nameInput.value.trim(),
+          spotCount: parseInt(countInput.value),
+        });
+      } else if (editingMode === "edit" && editingSectorId) {
+        operations.push({
+          type: "update",
+          id: editingSectorId,
+          name: nameInput.value.trim(),
+          spotCount: parseInt(countInput.value),
+        });
+      }
+
+      if (operations.length === 0) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving...";
+
+      try {
+        const response = await fetch("/api/admin/sectors", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ operations }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          submitError?.classList.remove("hidden");
+          if (submitError) {
+            (submitError as HTMLElement).textContent = data.error || "Failed to submit changes";
+          }
+          return;
+        }
+
+        // Success - reload page
+        window.location.reload();
+      } catch (err) {
+        submitError?.classList.remove("hidden");
+        if (submitError) {
+          (submitError as HTMLElement).textContent = err instanceof Error ? err.message : "Unknown error";
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save Changes";
+      }
+    });
+  </script>
+</AdminLayout>
