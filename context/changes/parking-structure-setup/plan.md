@@ -402,17 +402,17 @@ Operators need to see available sectors and spot counts when creating reservatio
 
 #### Automated
 
-- [x] 2.1 POST /api/admin/sectors creates sectors and persists to database
-- [x] 2.2 GET /api/admin/sectors returns current sectors
-- [x] 2.3 Supabase RLS policies enforce admin-only access
-- [x] 2.4 Type checking passes
-- [x] 2.5 Linting passes
+- [x] 2.1 POST /api/admin/sectors creates sectors and persists to database — 3514dac1
+- [x] 2.2 GET /api/admin/sectors returns current sectors — 3514dac1
+- [x] 2.3 Supabase RLS policies enforce admin-only access — 3514dac1
+- [x] 2.4 Type checking passes — 3514dac1
+- [x] 2.5 Linting passes — 3514dac1
 
 #### Manual
 
-- [x] 2.6 Admin submits batch changes and sees them reflected immediately
-- [x] 2.7 Atomic validation: partial batch failures reject entire batch
-- [x] 2.8 Error messages are clear and actionable
+- [x] 2.6 Admin submits batch changes and sees them reflected immediately — 3514dac1
+- [x] 2.7 Atomic validation: partial batch failures reject entire batch — 3514dac1
+- [x] 2.8 Error messages are clear and actionable — 3514dac1
 
 ### Phase 3: Conflict Detection and Reservation Query Logic
 
