@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
+import { checkSectorConflict, type ConflictInfo } from "@/lib/services/sectorService";
 import { z } from "zod";
 
 const operationSchema = z.object({
@@ -116,6 +117,39 @@ export async function POST(context: APIContext) {
           { status: 400, headers: { "Content-Type": "application/json" } },
         );
       }
+    }
+
+    // Check for conflicts on update operations that reduce spot count
+    const conflicts: ConflictInfo[] = [];
+    for (const op of operations) {
+      if (op.type === "update" && op.id) {
+        // Get current sector spot count to check if this is a reduction
+        const { data: currentSector } = await supabase
+          .from("sectors")
+          .select("spot_count")
+          .eq("id", op.id)
+          .single();
+
+        if (currentSector && op.spotCount < currentSector.spot_count) {
+          // This is a reduction, check for conflicts
+          const conflict = await checkSectorConflict(supabase, op.id, op.spotCount);
+          if (conflict) {
+            conflicts.push(conflict);
+          }
+        }
+      }
+    }
+
+    // If conflicts exist, return error response
+    if (conflicts.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Cannot apply changes: conflicts detected in affected sectors",
+          conflicts,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     // Apply all operations atomically

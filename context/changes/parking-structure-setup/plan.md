@@ -418,18 +418,18 @@ Operators need to see available sectors and spot counts when creating reservatio
 
 #### Automated
 
-- [ ] 3.1 Conflict detection correctly counts active reservations
-- [ ] 3.2 Peak concurrent calculation is accurate
-- [ ] 3.3 Rejects spot count reductions that would create overbooking
-- [ ] 3.4 Allows spot count reductions that don't conflict
-- [ ] 3.5 Type checking passes
-- [ ] 3.6 Linting passes
+- [x] 3.1 Conflict detection correctly counts active reservations
+- [x] 3.2 Peak concurrent calculation is accurate
+- [x] 3.3 Rejects spot count reductions that would create overbooking
+- [x] 3.4 Allows spot count reductions that don't conflict
+- [x] 3.5 Type checking passes
+- [x] 3.6 Linting passes
 
 #### Manual
 
-- [ ] 3.7 Admin receives conflict warning when attempting to reduce spot count below active reservations
-- [ ] 3.8 Peak concurrent calculation tested with overlapping and non-overlapping reservations
-- [ ] 3.9 Edge cases tested: same-day arrival/departure boundaries, late-night reservations
+- [x] 3.7 Admin receives conflict warning when attempting to reduce spot count below active reservations
+- [x] 3.8 Peak concurrent calculation tested with overlapping and non-overlapping reservations
+- [x] 3.9 Edge cases tested: same-day arrival/departure boundaries, late-night reservations
 
 ### Phase 4: Operator Read-Only Sector View
 
