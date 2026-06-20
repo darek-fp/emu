@@ -387,16 +387,16 @@ Operators need to see available sectors and spot counts when creating reservatio
 
 #### Automated
 
-- [x] 1.1 Page renders at `/admin/structure` without errors
-- [x] 1.2 Type checking passes
-- [x] 1.3 Linting passes
-- [x] 1.4 Middleware correctly redirects non-admin users
+- [x] 1.1 Page renders at `/admin/structure` without errors — 26e3f43b
+- [x] 1.2 Type checking passes — 26e3f43b
+- [x] 1.3 Linting passes — 26e3f43b
+- [x] 1.4 Middleware correctly redirects non-admin users — 26e3f43b
 
 #### Manual
 
-- [x] 1.5 Admin sees current sectors in read-only view
-- [x] 1.6 Edit button toggles form visibility
-- [x] 1.7 Form validation prevents empty names and non-positive spot counts
+- [x] 1.5 Admin sees current sectors in read-only view — 26e3f43b
+- [x] 1.6 Edit button toggles form visibility — 26e3f43b
+- [x] 1.7 Form validation prevents empty names and non-positive spot counts — 26e3f43b
 
 ### Phase 2: Sector CRUD API Endpoints
 
