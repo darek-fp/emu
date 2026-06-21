@@ -435,12 +435,12 @@ Operators need to see available sectors and spot counts when creating reservatio
 
 #### Automated
 
-- [x] 4.1 GET /api/sectors returns all sectors with spot counts
-- [x] 4.2 Middleware enforces operator/admin access
-- [x] 4.3 Type checking passes
-- [x] 4.4 Linting passes
+- [x] 4.1 GET /api/sectors returns all sectors with spot counts — b6273b81
+- [x] 4.2 Middleware enforces operator/admin access — b6273b81
+- [x] 4.3 Type checking passes — b6273b81
+- [x] 4.4 Linting passes — b6273b81
 
 #### Manual
 
-- [x] 4.5 Operator can view sectors in UI (manual spot-check)
-- [x] 4.6 Operators cannot modify sectors
+- [x] 4.5 Operator can view sectors in UI (manual spot-check) — b6273b81
+- [x] 4.6 Operators cannot modify sectors — b6273b81

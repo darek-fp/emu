@@ -1,9 +1,9 @@
 ---
 change_id: parking-structure-setup
 title: Parking structure setup
-status: implementing
+status: implemented
 created: 2026-06-09
-updated: 2026-06-20
+updated: 2026-06-21
 archived_at: null
 ---
 
