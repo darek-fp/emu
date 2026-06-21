@@ -418,29 +418,29 @@ Operators need to see available sectors and spot counts when creating reservatio
 
 #### Automated
 
-- [x] 3.1 Conflict detection correctly counts active reservations
-- [x] 3.2 Peak concurrent calculation is accurate
-- [x] 3.3 Rejects spot count reductions that would create overbooking
-- [x] 3.4 Allows spot count reductions that don't conflict
-- [x] 3.5 Type checking passes
-- [x] 3.6 Linting passes
+- [x] 3.1 Conflict detection correctly counts active reservations — ee450633
+- [x] 3.2 Peak concurrent calculation is accurate — ee450633
+- [x] 3.3 Rejects spot count reductions that would create overbooking — ee450633
+- [x] 3.4 Allows spot count reductions that don't conflict — ee450633
+- [x] 3.5 Type checking passes — ee450633
+- [x] 3.6 Linting passes — ee450633
 
 #### Manual
 
-- [x] 3.7 Admin receives conflict warning when attempting to reduce spot count below active reservations
-- [x] 3.8 Peak concurrent calculation tested with overlapping and non-overlapping reservations
-- [x] 3.9 Edge cases tested: same-day arrival/departure boundaries, late-night reservations
+- [x] 3.7 Admin receives conflict warning when attempting to reduce spot count below active reservations — ee450633
+- [x] 3.8 Peak concurrent calculation tested with overlapping and non-overlapping reservations — ee450633
+- [x] 3.9 Edge cases tested: same-day arrival/departure boundaries, late-night reservations — ee450633
 
 ### Phase 4: Operator Read-Only Sector View
 
 #### Automated
 
-- [ ] 4.1 GET /api/sectors returns all sectors with spot counts
-- [ ] 4.2 Middleware enforces operator/admin access
-- [ ] 4.3 Type checking passes
-- [ ] 4.4 Linting passes
+- [x] 4.1 GET /api/sectors returns all sectors with spot counts
+- [x] 4.2 Middleware enforces operator/admin access
+- [x] 4.3 Type checking passes
+- [x] 4.4 Linting passes
 
 #### Manual
 
-- [ ] 4.5 Operator can view sectors in UI (manual spot-check)
-- [ ] 4.6 Operators cannot modify sectors
+- [x] 4.5 Operator can view sectors in UI (manual spot-check)
+- [x] 4.6 Operators cannot modify sectors
