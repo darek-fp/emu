@@ -1,4 +1,3 @@
-Connecting to db 5432
 export type Json =
   | string
   | number
@@ -64,14 +63,72 @@ export type Database = {
           },
         ]
       }
+      operator_sector_assignments: {
+        Row: {
+          assigned_at: string
+          operator_id: string
+          sector_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          operator_id: string
+          sector_id: string
+        }
+        Update: {
+          assigned_at?: string
+          operator_id?: string
+          sector_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_sector_assignments_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operator_sector_assignments_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operators: {
+        Row: {
+          created_at: string
+          deactivated_at: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deactivated_at?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deactivated_at?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pricing_tiers: {
         Row: {
           base_daily_rate: number
           created_at: string
           daily_floor: number
           discount_steps: Json
+          ended_at: string | null
           id: string
-          is_active: boolean
+          sector_id: string
           updated_at: string
         }
         Insert: {
@@ -79,8 +136,9 @@ export type Database = {
           created_at?: string
           daily_floor: number
           discount_steps?: Json
+          ended_at?: string | null
           id?: string
-          is_active?: boolean
+          sector_id: string
           updated_at?: string
         }
         Update: {
@@ -88,11 +146,20 @@ export type Database = {
           created_at?: string
           daily_floor?: number
           discount_steps?: Json
+          ended_at?: string | null
           id?: string
-          is_active?: boolean
+          sector_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pricing_tiers_sector_fk"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reservations: {
         Row: {
@@ -100,6 +167,7 @@ export type Database = {
           arrival_at: string
           arrived_at: string | null
           created_at: string
+          created_by_operator_id: string | null
           customer_name: string
           departed_at: string | null
           departure_at: string
@@ -108,6 +176,7 @@ export type Database = {
           license_plate: string
           price_override: boolean
           price_total: number
+          pricing_tier_id: string
           sector_id: string
           status: string
           updated_at: string
@@ -117,6 +186,7 @@ export type Database = {
           arrival_at: string
           arrived_at?: string | null
           created_at?: string
+          created_by_operator_id?: string | null
           customer_name: string
           departed_at?: string | null
           departure_at: string
@@ -125,6 +195,7 @@ export type Database = {
           license_plate: string
           price_override?: boolean
           price_total: number
+          pricing_tier_id: string
           sector_id: string
           status?: string
           updated_at?: string
@@ -134,6 +205,7 @@ export type Database = {
           arrival_at?: string
           arrived_at?: string | null
           created_at?: string
+          created_by_operator_id?: string | null
           customer_name?: string
           departed_at?: string | null
           departure_at?: string
@@ -142,11 +214,26 @@ export type Database = {
           license_plate?: string
           price_override?: boolean
           price_total?: number
+          pricing_tier_id?: string
           sector_id?: string
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reservations_created_by_operator_fk"
+            columns: ["created_by_operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_pricing_tier_fk"
+            columns: ["pricing_tier_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_tiers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reservations_sector_id_fkey"
             columns: ["sector_id"]
@@ -322,5 +409,3 @@ export const Constants = {
   },
 } as const
 
-A new version of Supabase CLI is available: v2.105.0 (currently installed v2.98.2)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

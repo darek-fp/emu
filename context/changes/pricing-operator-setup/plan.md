@@ -593,10 +593,10 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [ ] 1.1 Modify pricing_tiers migration: add sector_id, ended_at, update unique index
-- [ ] 1.2 Create operators table migration
-- [ ] 1.3 Create operator_sector_assignments migration
-- [ ] 1.4 Update reservations with pricing_tier_id and created_by_operator_id
+- [x] 1.1 Modify pricing_tiers migration: add sector_id, ended_at, update unique index
+- [x] 1.2 Create operators table migration
+- [x] 1.3 Create operator_sector_assignments migration
+- [x] 1.4 Update reservations with pricing_tier_id and created_by_operator_id
 
 #### Manual
 
