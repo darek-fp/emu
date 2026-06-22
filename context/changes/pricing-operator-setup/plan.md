@@ -7,21 +7,25 @@ This plan implements Admin-configurable pricing tiers (per-sector) and operator 
 ## Current State Analysis
 
 **Database**:
+
 - `pricing_tiers` table exists (global, single active tier) with `base_daily_rate`, `daily_floor`, and `discount_steps` (JSONB)
 - `reservations` table has `price_total` and `price_override` fields but **lacks `pricing_tier_id` and `created_by_operator_id`** — price isn't versioned
 - **No `operators` table** exists — Supabase auth stores users but no app-level operator records with sector assignments
 - **No `operator_sector_assignments` table** — operators lack sector restrictions
 
 **Auth & RLS**:
+
 - Roles (admin, operator) stored in Supabase JWT `app_metadata.role`
 - `current_user_role()` function reads role from JWT for RLS policies
 - No operator-sector filtering in RLS — operators see all sectors
 
 **Admin UI**:
+
 - `src/pages/admin/structure.astro` uses large inline Astro script for sector form (follows pattern flagged in lessons.md for extraction to React)
 - Pattern: fetch data server-side, render with Astro, wire form interactivity inline
 
 **Key Discoveries**:
+
 - Pricing tiers currently global (one active); decision: make per-sector with versioning
 - Price not versioned on reservations; decision: capture `pricing_tier_id` at creation for audit
 - Operators not distinguished from admins in app DB; decision: soft-delete with deactivation_date
@@ -41,6 +45,7 @@ This plan implements Admin-configurable pricing tiers (per-sector) and operator 
 5. **Override Audit**: Price overrides flagged in reservations table with operator ID and timestamp.
 
 **Verification**:
+
 - Admin creates pricing tier with 2 discount steps → tier appears in list with versioning
 - Admin creates operator, assigns to Sector A/B → operator logs in, sees only A/B in dashboard
 - Operator creates reservation (2.5 day stay) → price calculated with correct tier + day floor
@@ -60,22 +65,26 @@ This plan implements Admin-configurable pricing tiers (per-sector) and operator 
 ## Implementation Approach
 
 **Data Model Changes**:
+
 1. Modify `pricing_tiers` to add `sector_id` (FK to sectors) and remove global `is_active` unique index
 2. Add `pricing_tier_id` and `created_by_operator_id` to reservations
 3. Create `operators` table (email, password_hash, deactivated_at for soft-delete)
 4. Create `operator_sector_assignments` table (operator_id, sector_id)
 
 **Calculation Service**:
+
 - Build `PricingService.calculatePrice()` — takes arrival, departure, tier, returns price with breakdown
 - Handle fractional day counting (any partial day = full day)
 - Apply discount tiers, then floor per tier
 
 **Admin UI**:
+
 1. Extract inline scripts to React components (following lessons.md)
 2. Pricing form: sector dropdown → base rate + discount tier rows (day-min, day-max, %) + floor + save
 3. Operator form: email + sector checkboxes + generate temp password (display once) + save
 
 **RLS & Access Control**:
+
 - Update reservations RLS to filter by operator's assigned sectors
 - Add RLS to `operators` table: operators can read own record, admins can CRUD all
 - Middleware validates operator sector assignments
@@ -104,7 +113,8 @@ Create the database foundation for per-sector pricing tiers with versioning, sup
 
 **Intent**: Add `sector_id` FK to link pricing tiers to sectors; add `ended_at` for versioning; remove global `is_active` unique index and replace with per-sector uniqueness (one active tier per sector at a time).
 
-**Contract**: 
+**Contract**:
+
 - Add column `sector_id UUID NOT NULL REFERENCES public.sectors(id)`
 - Add column `ended_at TIMESTAMPTZ` (null = currently active)
 - Drop existing `one_active_tier` unique index
@@ -120,6 +130,7 @@ Create the database foundation for per-sector pricing tiers with versioning, sup
 **Intent**: Store app-level operator records with soft-delete via `deactivated_at` timestamp.
 
 **Contract**:
+
 - Columns: `id UUID primary key`, `user_id UUID NOT NULL REFERENCES auth.users(id)`, `deactivated_at TIMESTAMPTZ` (null = active)
 - RLS: operators can read own record only, admins can read all, only admins can update
 - Trigger: sync operator creation/deletion with user management (optional for MVP)
@@ -133,6 +144,7 @@ Create the database foundation for per-sector pricing tiers with versioning, sup
 **Intent**: Many-to-many link between operators and sectors.
 
 **Contract**:
+
 - Columns: `operator_id UUID NOT NULL REFERENCES public.operators(id)`, `sector_id UUID NOT NULL REFERENCES public.sectors(id)`, `assigned_at TIMESTAMPTZ DEFAULT now()`
 - Primary key: `(operator_id, sector_id)`
 - RLS: operators can read own assignments, admins can read/write all
@@ -146,6 +158,7 @@ Create the database foundation for per-sector pricing tiers with versioning, sup
 **Intent**: Capture which pricing tier and operator created a reservation for audit and immutability.
 
 **Contract**:
+
 - Add column `pricing_tier_id UUID REFERENCES public.pricing_tiers(id)` (not null on new rows; backfill existing with active tier for sector)
 - Add column `created_by_operator_id UUID REFERENCES public.operators(id)` (nullable, admin can create without operator context)
 
@@ -184,9 +197,10 @@ Implement the PricingService with calculation logic: fractional day counting, di
 
 **Intent**: Core calculation logic that computes total price for a stay given arrival/departure timestamps, pricing tier, and discount structure.
 
-**Contract**: Export `calculatePrice(arrival: Date, departure: Date, tier: PricingTier) -> { totalPrice: number, breakdown: PriceBreakdown }`. 
+**Contract**: Export `calculatePrice(arrival: Date, departure: Date, tier: PricingTier) -> { totalPrice: number, breakdown: PriceBreakdown }`.
 
 Algorithm:
+
 1. Parse `discount_steps` JSONB from tier (array of `{dayMin, dayMax, discountPercent}`)
 2. Calculate stay duration in days: count each partial day as 1 full day (e.g., Mon 2pm to Wed 10am = 3)
 3. For each discount tier (ordered by day range):
@@ -197,6 +211,7 @@ Algorithm:
 4. Return total price + breakdown (per-tier costs for UI display)
 
 **Example Snippet** (conceptual):
+
 ```typescript
 // Stay 8 days, base $100/day, tiers: [1-3 days: 0%, 4-7 days: 10%, 8+: 20%], floor $50/day
 // Days 1-3: $100 * 1.0 = $100/day, floored to $100 → $300
@@ -214,6 +229,7 @@ Algorithm:
 **Intent**: Verify calculation logic handles boundary conditions correctly.
 
 **Test Cases**:
+
 - Single day stay (arrival Mon 10am, departure Mon 5pm) = 1 day
 - Overnight stay (Mon 2pm to Tue 2pm) = 2 days
 - Fractional with discount boundary (3.5 days, tier boundary at 4 days) = counts as 4 days
@@ -253,7 +269,8 @@ Create API endpoints for admin to manage operators: create (with temp password g
 
 **Intent**: POST endpoint for admin to create a new operator account, generate temp password, and assign sectors.
 
-**Contract**: 
+**Contract**:
+
 - POST `/api/admin/operators` with body: `{ email, sectorIds: string[] }`
 - Returns: `{ operatorId, tempPassword, email, sectors }`
 - Implementation:
@@ -272,7 +289,8 @@ Create API endpoints for admin to manage operators: create (with temp password g
 
 **Intent**: GET endpoint for admin to list all operators (active and deactivated) with sector assignments.
 
-**Contract**: 
+**Contract**:
+
 - GET `/api/admin/operators` — returns array of operators with `{ id, email, sectorIds, deactivatedAt, createdAt }`
 - Query params: `?includeDeactivated=true` (default false)
 
@@ -284,7 +302,8 @@ Create API endpoints for admin to manage operators: create (with temp password g
 
 **Intent**: PATCH endpoint to deactivate an operator (soft-delete).
 
-**Contract**: 
+**Contract**:
+
 - PATCH `/api/admin/operators/:id` with body: `{ action: "deactivate" }`
 - Sets `deactivated_at = now()` on operators record
 - Does NOT delete auth user (if we want auth to be separate), or set auth user to disabled state (depends on preference)
@@ -333,7 +352,8 @@ Build admin UI for creating and editing pricing tiers per sector. Extract form l
 
 **Intent**: Reusable form for creating/editing pricing tiers with dynamic discount tier rows.
 
-**Contract**: 
+**Contract**:
+
 - Props: `{ sectorId, onSave, onCancel, initialTier? }`
 - Fields: sector dropdown, base_daily_rate (number), daily_floor (number), dynamic discount_steps rows (day-min, day-max, discount-percent)
 - "Add Tier" button to insert new discount step row
@@ -349,7 +369,8 @@ Build admin UI for creating and editing pricing tiers per sector. Extract form l
 
 **Intent**: Admin page listing all pricing tiers per sector, with create/edit buttons.
 
-**Contract**: 
+**Contract**:
+
 - Display sectors with their active pricing tier
 - Show tier creation date and status (active/archived)
 - "Edit" button → open form modal
@@ -365,6 +386,7 @@ Build admin UI for creating and editing pricing tiers per sector. Extract form l
 **Intent**: POST endpoint for admin to save pricing tier configuration.
 
 **Contract**:
+
 - POST `/api/admin/pricing` with body: `{ sectorId, baseRate, floor, discountSteps: [{dayMin, dayMax, discountPercent}] }`
 - Implementation:
   1. Verify admin role
@@ -409,7 +431,8 @@ Build admin UI for managing operators: create, assign to sectors, view list, dea
 
 **Intent**: Form for admin to create operator accounts and assign sectors.
 
-**Contract**: 
+**Contract**:
+
 - Props: `{ onSave, onCancel }`
 - Fields: email (text), sector checkboxes (list of all sectors)
 - On save: POST to `/api/admin/operators` → display temp password in a success modal (copy-to-clipboard button)
@@ -424,6 +447,7 @@ Build admin UI for managing operators: create, assign to sectors, view list, dea
 **Intent**: Admin page listing all operators with actions.
 
 **Contract**:
+
 - Table with columns: email, sectors (comma-separated names), status (Active/Deactivated), actions (Edit, Deactivate/Reactivate)
 - "Create Operator" button → open form
 - Filter toggle: show only active / show all
@@ -438,6 +462,7 @@ Build admin UI for managing operators: create, assign to sectors, view list, dea
 **Intent**: Ensure operators only see sectors they're assigned to.
 
 **Contract**:
+
 - Middleware: After auth, fetch operator's sector assignments and attach to `context.locals.operatorSectors`
 - Reservations RLS: Add policy filtering by operator's assigned sectors (or block queries for restricted sectors)
 - Reservation creation: Verify operator has access to the requested sector
@@ -480,6 +505,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 **Intent**: Modify reservation creation to calculate price using sector's active pricing tier and validate operator sector access.
 
 **Contract**:
+
 - Before creating reservation:
   1. Fetch active pricing tier for the sector
   2. Call `calculatePrice(arrival, departure, tier)` → get total price
@@ -496,6 +522,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 **Intent**: Display calculated price before operator confirms booking. Allow override with warning flag.
 
 **Contract**:
+
 - Show "Calculated Price: $XXX" after operator selects arrival/departure
 - Display price breakdown (if available from `calculatePrice()` response)
 - Optional checkbox: "Override Price" → text input for custom price
@@ -511,6 +538,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 **Intent**: Verify that price is correctly captured and remains immutable after creation.
 
 **Test Cases**:
+
 - Create reservation with pricing tier X → price locked to tier X
 - Update pricing tier for sector → existing reservation price unchanged
 - Create new reservation with updated tier → new price calculated with updated tier
@@ -606,22 +634,22 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [x] 2.1 Implement PricingService.calculatePrice() with fractional day logic
-- [x] 2.2 Unit tests: fractional days, discount tiers, floor application
-- [x] 2.3 Type checking and linting pass
+- [x] 2.1 Implement PricingService.calculatePrice() with fractional day logic — 1bc45d19
+- [x] 2.2 Unit tests: fractional days, discount tiers, floor application — 1bc45d19
+- [x] 2.3 Type checking and linting pass — 1bc45d19
 
 #### Manual
 
-- [x] 2.4 Manual calculation tests: verify edge cases match expected output
+- [x] 2.4 Manual calculation tests: verify edge cases match expected output — 1bc45d19
 
 ### Phase 3: Operator Account Management API
 
 #### Automated
 
-- [ ] 3.1 Implement POST /api/admin/operators (create with temp password)
-- [ ] 3.2 Implement GET /api/admin/operators (list)
-- [ ] 3.3 Implement PATCH /api/admin/operators/:id (deactivate)
-- [ ] 3.4 Implement generateTempPassword() helper
+- [x] 3.1 Implement POST /api/admin/operators (create with temp password)
+- [x] 3.2 Implement GET /api/admin/operators (list)
+- [x] 3.3 Implement PATCH /api/admin/operators/:id (deactivate)
+- [x] 3.4 Implement generateTempPassword() helper
 
 #### Manual
 
