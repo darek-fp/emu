@@ -129,7 +129,7 @@ export function OperatorForm({ sectors, onSave, onCancel }: OperatorFormProps) {
           <button
             type="button"
             onClick={handleCloseTempPasswordModal}
-            className="flex-1 rounded-lg bg-green-600 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:bg-green-700"
+            className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
           >
             Done
           </button>
@@ -197,7 +197,7 @@ export function OperatorForm({ sectors, onSave, onCancel }: OperatorFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 rounded-lg bg-green-600 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:bg-green-700 disabled:opacity-50"
+          className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
         >
           {isSubmitting ? "Creating..." : "Create Operator"}
         </button>
@@ -205,7 +205,7 @@ export function OperatorForm({ sectors, onSave, onCancel }: OperatorFormProps) {
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-lg border border-white/30 px-4 py-2 font-medium text-white transition-colors hover:border-white/50 hover:bg-white/10"
+            className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
           >
             Cancel
           </button>
