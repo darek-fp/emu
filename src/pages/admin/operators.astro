@@ -1,0 +1,250 @@
+---
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { createClient } from "@/lib/supabase";
+import type { Database } from "@/database.types";
+
+type Operator = Database["public"]["Tables"]["operators"]["Row"];
+type OperatorWithEmail = Operator & { email?: string };
+type Sector = Database["public"]["Tables"]["sectors"]["Row"];
+type OperatorSectorAssignment = Database["public"]["Tables"]["operator_sector_assignments"]["Row"];
+
+// Check authentication
+const user = Astro.locals.user;
+const role = Astro.locals.role;
+
+if (!user || role !== "admin") {
+  return Astro.redirect("/auth/signin");
+}
+
+// Fetch operators, sectors, and assignments
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+let operators: OperatorWithEmail[] = [];
+let sectors: Sector[] = [];
+let assignments: OperatorSectorAssignment[] = [];
+let error = "";
+
+if (supabase) {
+  // Fetch sectors
+  const { data: sectorsData, error: sectorsError } = await supabase
+    .from("sectors")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (sectorsError) {
+    error = `Failed to load sectors: ${sectorsError.message}`;
+  } else {
+    sectors = sectorsData ?? [];
+  }
+
+  // Fetch operators with their auth user emails
+  const { data: operatorsData, error: operatorsError } = await supabase
+    .from("operators")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (operatorsError) {
+    error = `Failed to load operators: ${operatorsError.message}`;
+  } else {
+    operators = operatorsData ?? [];
+
+    // Fetch user emails from auth.users (will be populated via RLS/middleware)
+    // For now, we'll note that email fetching requires Supabase admin API or separate queries
+    // This is a limitation noted in the technical details
+  }
+
+  // Fetch operator sector assignments
+  const { data: assignmentsData, error: assignmentsError } = await supabase
+    .from("operator_sector_assignments")
+    .select("*")
+    .order("assigned_at", { ascending: true });
+
+  if (assignmentsError) {
+    error = `Failed to load sector assignments: ${assignmentsError.message}`;
+  } else {
+    assignments = assignmentsData ?? [];
+  }
+}
+
+// Map sector IDs to names for display
+const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
+
+// Group assignments by operator
+const assignmentsByOperator = new Map<string, string[]>();
+for (const assignment of assignments) {
+  if (!assignmentsByOperator.has(assignment.operator_id)) {
+    assignmentsByOperator.set(assignment.operator_id, []);
+  }
+  const sectorName = sectorMap.get(assignment.sector_id);
+  if (sectorName) {
+    assignmentsByOperator.get(assignment.operator_id)!.push(sectorName);
+  }
+}
+
+// Get active and deactivated operators
+const activeOperators = operators.filter((op) => !op.deactivated_at);
+const deactivatedOperators = operators.filter((op) => op.deactivated_at);
+---
+
+<AdminLayout title="Operator Management">
+  <div class="space-y-6">
+    {error && <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>}
+
+    {
+      !error && (
+        <div>
+          <h1 class="mb-2 text-2xl font-bold text-gray-900">Operator Management</h1>
+          <p class="text-gray-600">Create and manage operator accounts.</p>
+        </div>
+      )
+    }
+
+    {/* Create Operator Button */}
+    <div>
+      <button
+        class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+        onclick="document.getElementById('modal-create-operator').showModal()"
+      >
+        Create Operator
+      </button>
+    </div>
+
+    {/* Active Operators Table */}
+    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <table class="w-full">
+        <thead class="border-b border-gray-200 bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Email</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Sectors</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Created</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            activeOperators.length === 0 ? (
+              <tr>
+                <td class="px-6 py-4 text-center text-sm text-gray-500" colspan="5">
+                  No active operators. Create one to get started.
+                </td>
+              </tr>
+            ) : (
+              activeOperators.map((operator) => {
+                const operatorSectors = assignmentsByOperator.get(operator.id) ?? [];
+                return (
+                  <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm text-gray-900">{operator.email || "—"}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                      {operatorSectors.length > 0 ? operatorSectors.join(", ") : "—"}
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        Active
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                      {new Date(operator.created_at).toLocaleDateString()}
+                    </td>
+                    <td class="px-6 py-4 text-sm">
+                      <button class="text-red-600 hover:text-red-700" onclick={`deactivateOperator('${operator.id}')`}>
+                        Deactivate
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+
+    {/* Deactivated Operators (if any) */}
+    {
+      deactivatedOperators.length > 0 && (
+        <details class="rounded-lg border border-gray-200 bg-white p-6">
+          <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+            Show {deactivatedOperators.length} Deactivated Operator(s)
+          </summary>
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full">
+              <thead class="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Email</th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Sectors</th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Deactivated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deactivatedOperators.map((operator) => {
+                  const operatorSectors = assignmentsByOperator.get(operator.id) ?? [];
+                  return (
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                      <td class="px-6 py-4 text-sm text-gray-900">{operator.email || "—"}</td>
+                      <td class="px-6 py-4 text-sm text-gray-600">
+                        {operatorSectors.length > 0 ? operatorSectors.join(", ") : "—"}
+                      </td>
+                      <td class="px-6 py-4 text-sm text-gray-500">
+                        {operator.deactivated_at ? new Date(operator.deactivated_at).toLocaleDateString() : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )
+    }
+  </div>
+
+  {/* Create Operator Modal */}
+  <dialog id="modal-create-operator" class="rounded-lg shadow-xl backdrop:bg-black/50 backdrop:opacity-75">
+    <div class="w-full max-w-md space-y-4 p-6">
+      <h2 class="text-xl font-bold text-gray-900">Create Operator</h2>
+
+      {/* OperatorForm component will be rendered here as an island */}
+      <div id="operator-form-container"></div>
+
+      <button
+        onclick="document.getElementById('modal-create-operator').close()"
+        class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+      >
+        Close
+      </button>
+    </div>
+  </dialog>
+
+  <script>
+    function deactivateOperator(operatorId: string) {
+      if (!confirm("Are you sure you want to deactivate this operator?")) {
+        return;
+      }
+
+      fetch(`/api/admin/operators/${operatorId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "deactivate" }),
+      })
+        .then((res) => {
+          if (res.ok) {
+            // Reload page to show updated status
+            window.location.reload();
+          } else {
+            alert("Failed to deactivate operator");
+          }
+        })
+        .catch(() => {
+          alert("Error deactivating operator");
+        });
+    }
+
+    // Attach close button handlers
+    document.querySelectorAll("dialog").forEach((dialog) => {
+      dialog.addEventListener("close", () => {
+        dialog.close();
+      });
+    });
+  </script>
+</AdminLayout>

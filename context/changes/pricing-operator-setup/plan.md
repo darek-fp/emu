@@ -661,10 +661,10 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [x] 4.1 Create PricingTierForm React component with validation
-- [x] 4.2 Create /admin/pricing page with tier list
-- [x] 4.3 Implement POST /api/admin/pricing (save tier)
-- [x] 4.4 Type checking and linting pass
+- [x] 4.1 Create PricingTierForm React component with validation — 052e6632
+- [x] 4.2 Create /admin/pricing page with tier list — 052e6632
+- [x] 4.3 Implement POST /api/admin/pricing (save tier) — 052e6632
+- [x] 4.4 Type checking and linting pass — 052e6632
 
 #### Manual
 
@@ -676,11 +676,11 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [ ] 5.1 Create OperatorForm React component with validation
-- [ ] 5.2 Create /admin/operators page with list and actions
-- [ ] 5.3 Update middleware to attach operator sector assignments
-- [ ] 5.4 Update reservations RLS to restrict by sector
-- [ ] 5.5 Type checking and linting pass
+- [x] 5.1 Create OperatorForm React component with validation
+- [x] 5.2 Create /admin/operators page with list and actions
+- [x] 5.3 Update middleware to attach operator sector assignments
+- [x] 5.4 Update reservations RLS to restrict by sector
+- [x] 5.5 Type checking and linting pass
 
 #### Manual
 

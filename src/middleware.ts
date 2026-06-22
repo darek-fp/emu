@@ -23,6 +23,23 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const role = (user?.app_metadata.role ?? null) as UserRole | null;
   context.locals.role = role;
 
+  // Fetch operator sector assignments for operators
+  context.locals.operatorSectors = [];
+  if (user && role === "operator" && supabase) {
+    // Get the operator record
+    const { data: operatorData } = await supabase.from("operators").select("id").eq("user_id", user.id).single();
+
+    if (operatorData) {
+      // Get the sector assignments
+      const { data: assignments } = await supabase
+        .from("operator_sector_assignments")
+        .select("sector_id")
+        .eq("operator_id", operatorData.id);
+
+      context.locals.operatorSectors = assignments?.map((a) => a.sector_id) ?? [];
+    }
+  }
+
   const { pathname } = context.url;
   const isAdminRoute = ADMIN_PREFIXES.some((p) => matchesPrefix(pathname, p));
   const isOperatorRoute = OPERATOR_PREFIXES.some((p) => matchesPrefix(pathname, p));

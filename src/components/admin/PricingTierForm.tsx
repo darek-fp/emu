@@ -101,7 +101,7 @@ export function PricingTierForm({
     setDiscountSteps(updated);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -152,7 +152,9 @@ export function PricingTierForm({
         <select
           id="sector"
           value={selectedSectorId}
-          onChange={(e) => setSelectedSectorId(e.target.value)}
+          onChange={(e) => {
+            setSelectedSectorId(e.target.value);
+          }}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
           <option value="">Select a sector</option>
@@ -176,7 +178,9 @@ export function PricingTierForm({
           step="0.01"
           min="0"
           value={baseRate}
-          onChange={(e) => setBaseRate(parseFloat(e.target.value))}
+          onChange={(e) => {
+            setBaseRate(parseFloat(e.target.value));
+          }}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
         {errors.baseRate && <p className="mt-1 text-sm text-red-600">{errors.baseRate}</p>}
@@ -193,7 +197,9 @@ export function PricingTierForm({
           step="0.01"
           min="0"
           value={floor}
-          onChange={(e) => setFloor(parseFloat(e.target.value))}
+          onChange={(e) => {
+            setFloor(parseFloat(e.target.value));
+          }}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
         {errors.floor && <p className="mt-1 text-sm text-red-600">{errors.floor}</p>}
