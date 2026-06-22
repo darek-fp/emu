@@ -3,7 +3,6 @@ import { useRef, useState } from "react";
 interface OperatorFormProps {
   sectors: { id: string; name: string }[];
   onSave?: () => void;
-  onCancel?: () => void;
 }
 
 interface TempPasswordResponse {
@@ -12,7 +11,7 @@ interface TempPasswordResponse {
   email: string;
 }
 
-export function OperatorForm({ sectors, onSave, onCancel }: OperatorFormProps) {
+export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
   const [email, setEmail] = useState("");
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -201,15 +200,14 @@ export function OperatorForm({ sectors, onSave, onCancel }: OperatorFormProps) {
         >
           {isSubmitting ? "Creating..." : "Create Operator"}
         </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
-          >
-            Cancel
-          </button>
-        )}
+        <button
+          type="button"
+          id="formCancelBtn"
+          onClick={onCancel}
+          className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   );

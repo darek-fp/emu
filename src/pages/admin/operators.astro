@@ -202,11 +202,7 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       <h2 class="mb-4 text-xl font-semibold text-white" id="formTitle">Add New Operator</h2>
       <p class="mb-4 text-white/70" id="formDescription">Create a new operator and assign sectors.</p>
 
-      <OperatorForm
-        client:load
-        sectors={sectors}
-        onCancel={() => document.getElementById("formContainer")?.classList.add("hidden")}
-      />
+      <OperatorForm client:load sectors={sectors} />
     </div>
   </div>
 
@@ -214,13 +210,19 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
     const initializeForm = () => {
       const formContainer = document.getElementById("formContainer");
       const addNewBtn = document.getElementById("addNewBtn");
+      const cancelBtn = document.getElementById("formCancelBtn");
       const deactivateBtns = document.querySelectorAll(".deactivateBtn");
 
       const showForm = () => {
         formContainer?.classList.remove("hidden");
       };
 
+      const hideForm = () => {
+        formContainer?.classList.add("hidden");
+      };
+
       addNewBtn?.addEventListener("click", showForm);
+      cancelBtn?.addEventListener("click", hideForm);
 
       deactivateBtns.forEach((btn) => {
         btn.addEventListener("click", async (e) => {
