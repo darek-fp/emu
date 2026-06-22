@@ -22,7 +22,7 @@ export async function getPeakConcurrentReservations(
   timeRange?: { start: Date; end: Date }
 ): Promise<number> {
   if (!supabaseClient) {
-    return 0;
+    throw new Error("Supabase client not initialized");
   }
 
   const now = new Date();
@@ -36,8 +36,7 @@ export async function getPeakConcurrentReservations(
     .gte("departure_at", startTime.toISOString());
 
   if (error) {
-    console.error("Error querying reservations:", error);
-    return 0;
+    throw new Error(`Failed to query reservations: ${error.message}`);
   }
 
   if (!reservations) {
@@ -49,15 +48,22 @@ export async function getPeakConcurrentReservations(
   }
 
   // Calculate peak concurrent reservations
-  // Sort all events (arrivals and departures) chronologically
-  const events: Array<{ time: Date; type: "arrival" | "departure" }> = [];
+  // Sort all events (arrivals and departures) chronologically.
+  // On ties (same timestamp), departures sort before arrivals
+  // to treat departures as exclusive: [arrival, departure).
+  const events: { time: Date; type: "arrival" | "departure" }[] = [];
 
   for (const res of reservations as unknown as ReservationRow[]) {
     events.push({ time: new Date(res.arrival_at), type: "arrival" });
     events.push({ time: new Date(res.departure_at), type: "departure" });
   }
 
-  events.sort((a, b) => a.time.getTime() - b.time.getTime());
+  events.sort((a, b) => {
+    const timeDiff = a.time.getTime() - b.time.getTime();
+    if (timeDiff !== 0) return timeDiff;
+    // On time tie, departures sort before arrivals
+    return a.type === "departure" ? -1 : 1;
+  });
 
   let currentCount = 0;
   let peakCount = 0;
@@ -80,7 +86,7 @@ export async function checkSectorConflict(
   newSpotCount: number
 ): Promise<ConflictInfo | null> {
   if (!supabaseClient) {
-    return null;
+    throw new Error("Supabase client not initialized");
   }
 
   // Get current sector info
@@ -90,8 +96,12 @@ export async function checkSectorConflict(
     .eq("id", sectorId)
     .single();
 
-  if (sectorError || !sector) {
-    return null;
+  if (sectorError) {
+    throw new Error(`Failed to fetch sector: ${sectorError.message}`);
+  }
+
+  if (!sector) {
+    throw new Error(`Sector with id ${sectorId} not found`);
   }
 
   // Get peak concurrent reservations

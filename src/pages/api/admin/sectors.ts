@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase";
 import { checkSectorConflict, type ConflictInfo } from "@/lib/services/sectorService";
 import { z } from "zod";
 
+export const prerender = false;
+
 const operationSchema = z.object({
   type: z.enum(["add", "update"]),
   name: z.string().min(1, "Sector name is required").optional(),
@@ -76,7 +78,7 @@ export async function POST(context: APIContext) {
         if (!op.id) {
           validationErrors.push("Sector ID is required for update operation");
         }
-        if (op.name !== undefined && op.name.trim().length === 0) {
+        if (op.name?.trim().length === 0) {
           validationErrors.push("Sector name cannot be empty");
         }
         if (!op.spotCount || op.spotCount <= 0) {
@@ -120,15 +122,14 @@ export async function POST(context: APIContext) {
     }
 
     // Check for conflicts on update operations that reduce spot count
+    // WARNING: TOCTOU race condition window exists between this check and the write.
+    // For production, use a PostgreSQL RPC to make check-then-act atomic.
+    // Temporary mitigation: re-validate immediately before writes.
     const conflicts: ConflictInfo[] = [];
     for (const op of operations) {
       if (op.type === "update" && op.id) {
         // Get current sector spot count to check if this is a reduction
-        const { data: currentSector } = await supabase
-          .from("sectors")
-          .select("spot_count")
-          .eq("id", op.id)
-          .single();
+        const { data: currentSector } = await supabase.from("sectors").select("spot_count").eq("id", op.id).single();
 
         if (currentSector && op.spotCount < currentSector.spot_count) {
           // This is a reduction, check for conflicts
@@ -148,12 +149,39 @@ export async function POST(context: APIContext) {
           error: "Cannot apply changes: conflicts detected in affected sectors",
           conflicts,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Apply all operations atomically
+    // Note: Supabase JS client does not support true transactions.
+    // We validate all operations before any writes to minimize risk.
+    // TOCTOU mitigation: re-validate conflicts immediately before writes.
+    // If a write fails mid-batch, partial updates may persist.
+    // For production, use a Supabase RPC or PostgreSQL trigger for true atomicity.
     try {
+      // Re-validate conflicts immediately before writes (TOCTOU mitigation)
+      for (const op of operations) {
+        if (op.type === "update" && op.id) {
+          const { data: currentSector } = await supabase.from("sectors").select("spot_count").eq("id", op.id).single();
+          if (currentSector && op.spotCount < currentSector.spot_count) {
+            const conflict = await checkSectorConflict(supabase, op.id, op.spotCount);
+            if (conflict) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: "Conflict detected (state changed during request): " + conflict.reason,
+                  conflicts: [conflict],
+                }),
+                { status: 400, headers: { "Content-Type": "application/json" } }
+              );
+            }
+          }
+        }
+      }
+      
+      const writeErrors: string[] = [];
+      
       for (const op of operations) {
         if (op.type === "add") {
           const { error } = await supabase
@@ -161,31 +189,34 @@ export async function POST(context: APIContext) {
             .insert([{ name: op.name?.trim() ?? "", spot_count: op.spotCount }]);
 
           if (error) {
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error: `Failed to add sector: ${error.message}`,
-              }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
+            writeErrors.push(`Failed to add sector: ${error.message}`);
           }
         } else {
           const updateData: { spot_count: number; name?: string } = { spot_count: op.spotCount };
           if (op.name) {
             updateData.name = op.name.trim();
           }
-          const { error } = await supabase.from("sectors").update(updateData).eq("id", op.id ?? "");
+          const { error } = await supabase
+            .from("sectors")
+            .update(updateData)
+            .eq("id", op.id ?? "");
 
           if (error) {
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error: `Failed to update sector: ${error.message}`,
-              }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
+            writeErrors.push(`Failed to update sector: ${error.message}`);
           }
         }
+      }
+      
+      // If any writes failed, return error (stop processing)
+      if (writeErrors.length > 0) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "One or more sector updates failed. Partial updates may have persisted.",
+            details: writeErrors,
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error during operation";

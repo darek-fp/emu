@@ -8,6 +8,13 @@ export async function GET(context: APIContext) {
   // Create Supabase client with user's auth session
   const supabase = createClient(context.request.headers, context.cookies);
 
+  if (!supabase) {
+    return new Response(JSON.stringify({ error: "Database connection failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   // Get current user
   const {
     data: { user },
@@ -51,7 +58,7 @@ export async function GET(context: APIContext) {
         error: "Failed to fetch sectors",
         details: message,
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
