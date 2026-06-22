@@ -593,26 +593,26 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [x] 1.1 Modify pricing_tiers migration: add sector_id, ended_at, update unique index
-- [x] 1.2 Create operators table migration
-- [x] 1.3 Create operator_sector_assignments migration
-- [x] 1.4 Update reservations with pricing_tier_id and created_by_operator_id
+- [x] 1.1 Modify pricing_tiers migration: add sector_id, ended_at, update unique index — 9ef8b005
+- [x] 1.2 Create operators table migration — 9ef8b005
+- [x] 1.3 Create operator_sector_assignments migration — 9ef8b005
+- [x] 1.4 Update reservations with pricing_tier_id and created_by_operator_id — 9ef8b005
 
 #### Manual
 
-- [ ] 1.5 Verify migrations apply cleanly and data backfilled
+- [x] 1.5 Verify migrations apply cleanly and data backfilled
 
 ### Phase 2: Pricing Service & Calculation Logic
 
 #### Automated
 
-- [ ] 2.1 Implement PricingService.calculatePrice() with fractional day logic
-- [ ] 2.2 Unit tests: fractional days, discount tiers, floor application
-- [ ] 2.3 Type checking and linting pass
+- [x] 2.1 Implement PricingService.calculatePrice() with fractional day logic
+- [x] 2.2 Unit tests: fractional days, discount tiers, floor application
+- [x] 2.3 Type checking and linting pass
 
 #### Manual
 
-- [ ] 2.4 Manual calculation tests: verify edge cases match expected output
+- [x] 2.4 Manual calculation tests: verify edge cases match expected output
 
 ### Phase 3: Operator Account Management API
 
