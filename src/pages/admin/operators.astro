@@ -202,19 +202,11 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       <h2 class="mb-4 text-xl font-semibold text-white" id="formTitle">Add New Operator</h2>
       <p class="mb-4 text-white/70" id="formDescription">Create a new operator and assign sectors.</p>
 
-      <div class="space-y-6">
-        <OperatorForm client:load sectors={sectors} />
-
-        <div class="flex gap-3">
-          <button
-            id="cancelBtn"
-            type="button"
-            class="rounded-lg border border-white/30 px-6 py-2 font-medium text-white transition-colors hover:border-white/50 hover:bg-white/10"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
+      <OperatorForm
+        client:load
+        sectors={sectors}
+        onCancel={() => document.getElementById("formContainer")?.classList.add("hidden")}
+      />
     </div>
   </div>
 
@@ -222,19 +214,13 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
     const initializeForm = () => {
       const formContainer = document.getElementById("formContainer");
       const addNewBtn = document.getElementById("addNewBtn");
-      const cancelBtn = document.getElementById("cancelBtn");
       const deactivateBtns = document.querySelectorAll(".deactivateBtn");
 
       const showForm = () => {
         formContainer?.classList.remove("hidden");
       };
 
-      const hideForm = () => {
-        formContainer?.classList.add("hidden");
-      };
-
       addNewBtn?.addEventListener("click", showForm);
-      cancelBtn?.addEventListener("click", hideForm);
 
       deactivateBtns.forEach((btn) => {
         btn.addEventListener("click", async (e) => {
