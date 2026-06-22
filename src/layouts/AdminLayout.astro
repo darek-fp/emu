@@ -1,11 +1,13 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import AdminSidebar from "@/components/admin/AdminSidebar.astro";
 
 interface Props {
   title: string;
 }
 
 const { title } = Astro.props;
+const currentPath = new URL(Astro.request.url).pathname;
 ---
 
 <Layout title={title}>
@@ -15,8 +17,13 @@ const { title } = Astro.props;
         <h2 class="text-lg font-semibold text-white">{title}</h2>
       </div>
     </nav>
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <slot />
+    <div class="flex">
+      <AdminSidebar currentPath={currentPath} />
+      <div class="flex-1">
+        <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <slot />
+        </div>
+      </div>
     </div>
   </div>
 </Layout>
