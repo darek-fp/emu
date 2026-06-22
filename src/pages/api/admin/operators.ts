@@ -76,7 +76,6 @@ export async function POST(context: APIContext): Promise<Response> {
       const parsed = createOperatorSchema.parse(body);
       email = parsed.email.toLowerCase().trim();
       sectorIds = parsed.sectorIds;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
@@ -100,7 +99,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Check if email already exists in auth.users
     const { data: existingAuth } = await supabase.auth.admin.listUsers();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     const authUserExists = (existingAuth?.users ?? []).some((u) => u.email?.toLowerCase() === email);
     if (authUserExists) {
       return new Response(JSON.stringify({ success: false, error: `Email already in use: ${email}` }), {
@@ -123,7 +122,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const tempPassword = generateTempPassword();
 
     // Create Supabase auth user with temp password
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password: tempPassword,
@@ -141,7 +140,6 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const userId = authData.user.id;
 
     // Create operators table record
@@ -166,7 +164,6 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const operatorId = operatorData.id;
 
     // Insert sector assignments
@@ -195,7 +192,7 @@ export async function POST(context: APIContext): Promise<Response> {
         operatorId,
         email,
         tempPassword, // Display password once - admin must copy and share
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         sectors: sectors as unknown as SectorInfo[],
       }),
       { status: 201, headers: { "Content-Type": "application/json" } },
@@ -281,13 +278,13 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     // Fetch auth users to get email addresses
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
     const { data: authUsers } = await supabase.auth.admin.listUsers();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+
     const emailMap = new Map((authUsers?.users ?? []).map((u) => [u.id, u.email]));
 
     // Fetch sector assignments for these operators
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     const operatorIds = operators.map((o) => o.id);
     const { data: assignments, error: assignmentError } = await supabase
       .from("operator_sector_assignments")
@@ -306,15 +303,14 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     // Build operator list with sector assignments
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const operatorList: OperatorListItem[] = operators.map((op) => ({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       id: op.id,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       email: emailMap.get(op.user_id) ?? "unknown",
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       sectorIds: (assignments ?? []).filter((a) => a.operator_id === op.id).map((a) => a.sector_id),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       deactivatedAt: op.deactivated_at,
       createdAt: op.created_at,
     }));
@@ -378,7 +374,6 @@ export async function PATCH(context: APIContext): Promise<Response> {
       const body = (await context.request.json()) as unknown;
       const parsed = deactivateOperatorSchema.parse(body);
       action = parsed.action;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
@@ -402,7 +397,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
     if (action === "deactivate") {
       // Soft-delete: set deactivated_at timestamp
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       const { data: updated, error } = await supabase
         .from("operators")
         .update({ deactivated_at: new Date().toISOString() })
@@ -422,24 +417,21 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
       // Fetch email for response
       let email = "unknown";
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
       if (updated.user_id) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { data: authUsers } = await supabase.auth.admin.listUsers();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+
         const authUser = (authUsers?.users ?? []).find((u) => u.id === updated.user_id);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         email = authUser?.email ?? "unknown";
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const response: OperatorInfo & { id: string } = {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         id: updated.id,
         email,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         deactivatedAt: updated.deactivated_at,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         createdAt: updated.created_at,
       };
 

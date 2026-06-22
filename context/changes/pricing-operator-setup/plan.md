@@ -676,11 +676,11 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [x] 5.1 Create OperatorForm React component with validation
-- [x] 5.2 Create /admin/operators page with list and actions
-- [x] 5.3 Update middleware to attach operator sector assignments
-- [x] 5.4 Update reservations RLS to restrict by sector
-- [x] 5.5 Type checking and linting pass
+- [x] 5.1 Create OperatorForm React component with validation — f36ce77d
+- [x] 5.2 Create /admin/operators page with list and actions — f36ce77d
+- [x] 5.3 Update middleware to attach operator sector assignments — f36ce77d
+- [x] 5.4 Update reservations RLS to restrict by sector — f36ce77d
+- [x] 5.5 Type checking and linting pass — f36ce77d
 
 #### Manual
 
