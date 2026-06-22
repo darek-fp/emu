@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "@/layouts/AdminLayout.astro";
+import { PricingTierForm } from "@/components/admin/PricingTierForm";
 import { createClient } from "@/lib/supabase";
 import type { Database } from "@/database.types";
 
@@ -182,10 +183,7 @@ for (const [sectorId, tiers] of tiersBySetor) {
       <dialog id={`modal-sector-${sector.id}`} class="rounded-lg shadow-xl backdrop:bg-black/50 backdrop:opacity-75">
         <div class="w-full max-w-md space-y-4 p-6">
           <h2 class="text-xl font-bold text-gray-900">Pricing Tier for {sector.name}</h2>
-
-          {/* PricingTierForm component will be rendered here as an island */}
-          <div id={`pricing-form-${sector.id}`} />
-
+          <PricingTierForm client:load sectorId={sector.id} sectors={sectors} />
           <button
             onclick="document.getElementById('modal-sector-' + this.dataset.sectorId).close()"
             data-sector-id={sector.id}
@@ -199,7 +197,7 @@ for (const [sectorId, tiers] of tiersBySetor) {
   }
 
   <script>
-    // Attach close button handlers
+    // Attach close button handlers and page reload on form save
     document.querySelectorAll("dialog").forEach((dialog) => {
       dialog.addEventListener("close", () => {
         dialog.close();
