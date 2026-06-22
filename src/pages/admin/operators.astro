@@ -146,35 +146,33 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
     </div>
 
     {/* Deactivated Operators */}
-    {
-      deactivatedOperators.length > 0 && (
-        <details class="rounded-lg border border-gray-200 bg-white p-6">
-          <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
-            Show {deactivatedOperators.length} Deactivated Operator(s)
-          </summary>
-          <div class="mt-4 space-y-3">
-            {deactivatedOperators.map((operator) => {
-              const operatorSectors = assignmentsByOperator.get(operator.id) ?? [];
-              return (
-                <div key={operator.id} class="rounded bg-gray-100 p-3">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="font-medium text-gray-900">{operator.email || "—"}</p>
-                      <p class="text-xs text-gray-600">
-                        Sectors: {operatorSectors.length > 0 ? operatorSectors.join(", ") : "—"}
-                      </p>
-                    </div>
+    {deactivatedOperators.length > 0 && (
+      <details class="rounded-lg border border-gray-200 bg-white p-6">
+        <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+          Show {deactivatedOperators.length} Deactivated Operator(s)
+        </summary>
+        <div class="mt-4 space-y-3">
+          {deactivatedOperators.map((operator) => {
+            const operatorSectors = assignmentsByOperator.get(operator.id) ?? [];
+            return (
+              <div key={operator.id} class="rounded bg-gray-100 p-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="font-medium text-gray-900">{operator.email || "—"}</p>
                     <p class="text-xs text-gray-600">
-                      Deactivated: {operator.deactivated_at ? new Date(operator.deactivated_at).toLocaleDateString() : "—"}
+                      Sectors: {operatorSectors.length > 0 ? operatorSectors.join(", ") : "—"}
                     </p>
                   </div>
+                  <p class="text-xs text-gray-600">
+                    Deactivated: {operator.deactivated_at ? new Date(operator.deactivated_at).toLocaleDateString() : "—"}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </details>
-      )
-    }
+              </div>
+            );
+          })}
+        </div>
+      </details>
+    )}
   </div>
 
   {/* Create Operator Modal */}
