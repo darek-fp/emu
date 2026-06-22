@@ -1,13 +1,12 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 interface OperatorFormProps {
   sectors: { id: string; name: string }[];
   onSave?: () => void;
 }
 
-interface TempPasswordResponse {
+interface OperatorResponse {
   operatorId: string;
-  tempPassword: string;
   email: string;
 }
 
@@ -16,8 +15,7 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tempPasswordData, setTempPasswordData] = useState<TempPasswordResponse | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [successMessage, setSuccessMessage] = useState<OperatorResponse | null>(null);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -66,8 +64,12 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
         return;
       }
 
-      const data = (await response.json()) as TempPasswordResponse;
-      setTempPasswordData(data);
+      const data = (await response.json()) as OperatorResponse;
+      setSuccessMessage(data);
+      // Reset form
+      setEmail("");
+      setSelectedSectors([]);
+      setErrors({});
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setErrors({ submit: message });
@@ -76,58 +78,35 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
     }
   };
 
-  const handleCloseTempPasswordModal = () => {
-    setTempPasswordData(null);
-    setEmail("");
-    setSelectedSectors([]);
-    setErrors({});
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null);
     if (onSave) {
       onSave();
     }
   };
 
-  const handleCopyPassword = () => {
-    if (tempPasswordData) {
-      void navigator.clipboard.writeText(tempPasswordData.tempPassword);
-    }
-  };
-
-  if (tempPasswordData) {
+  if (successMessage) {
     return (
       <div className="space-y-6">
         <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
           <h3 className="font-medium text-green-400">Operator Created Successfully</h3>
           <p className="mt-2 text-sm text-green-300">
-            An operator account has been created. Share this temporary password with the operator:
+            Operator account has been created. The operator can now sign up and create an account.
           </p>
           <div className="mt-4 space-y-2">
             <div className="text-sm text-white">
-              <span className="font-medium">Email:</span> {tempPasswordData.email}
+              <span className="font-medium">Email:</span> {successMessage.email}
             </div>
-            <div className="space-y-2">
-              <div>
-                <span className="font-medium text-white">Temp Password:</span>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="flex-1 rounded border border-white/20 bg-white/10 px-3 py-2 font-mono text-sm break-all text-white">
-                    {tempPasswordData.tempPassword}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCopyPassword}
-                    className="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:border-white/50 hover:bg-white/10"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
+            <div className="text-sm text-white">
+              <span className="font-medium">Operator ID:</span> {successMessage.operatorId}
             </div>
           </div>
-          <p className="mt-4 text-xs text-green-300">The operator must change this password on first login.</p>
+          <p className="mt-4 text-xs text-green-300">The operator can now sign up using this email address.</p>
         </div>
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={handleCloseTempPasswordModal}
+            onClick={handleCloseSuccess}
             className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
           >
             Done
@@ -138,7 +117,7 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {errors.submit && (
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
           {errors.submit}

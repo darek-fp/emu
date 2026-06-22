@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
-import { generateTempPassword } from "@/lib/auth";
 import { z } from "zod";
 
 export const prerender = false;
@@ -39,6 +38,7 @@ interface OperatorInfo {
 /**
  * POST /api/admin/operators
  * Create a new operator account with sector assignments.
+ * Note: Auth user must be created separately via signup flow.
  *
  * Request body:
  * {
@@ -51,7 +51,6 @@ interface OperatorInfo {
  *   success: true,
  *   operatorId: "operator-uuid",
  *   email: "operator@example.com",
- *   tempPassword: "GeneratedPassword123!",
  *   sectors: [{ id: "sector-1", name: "Sector A" }]
  * }
  */
@@ -97,17 +96,6 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Check if email already exists in auth.users
-    const { data: existingAuth } = await supabase.auth.admin.listUsers();
-
-    const authUserExists = (existingAuth?.users ?? []).some((u) => u.email?.toLowerCase() === email);
-    if (authUserExists) {
-      return new Response(JSON.stringify({ success: false, error: `Email already in use: ${email}` }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
     // Verify all sectors exist
     const { data: sectors, error: sectorError } = await supabase.from("sectors").select("id, name").in("id", sectorIds);
 
@@ -118,36 +106,12 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Generate temporary password
-    const tempPassword = generateTempPassword();
-
-    // Create Supabase auth user with temp password
-
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true, // Auto-confirm email for admin-created accounts
-      user_metadata: {
-        role: "operator",
-      },
-    });
-
-    if (authError || !authData?.user?.id) {
-      const errorMsg = authError instanceof Error ? authError.message : String(authError);
-      return new Response(JSON.stringify({ success: false, error: `Failed to create auth user: ${errorMsg}` }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const userId = authData.user.id;
-
-    // Create operators table record
+    // Create operators table record (auth user will be created via signup flow)
     const { data: operatorData, error: operatorError } = await supabase
       .from("operators")
       .insert([
         {
-          user_id: userId,
+          email,
           deactivated_at: null,
         },
       ])
@@ -155,8 +119,6 @@ export async function POST(context: APIContext): Promise<Response> {
       .single();
 
     if (operatorError || !operatorData?.id) {
-      // Clean up auth user if operators insert fails
-      await supabase.auth.admin.deleteUser(userId);
       const errorMsg = operatorError instanceof Error ? operatorError.message : String(operatorError);
       return new Response(JSON.stringify({ success: false, error: `Failed to create operator record: ${errorMsg}` }), {
         status: 500,
@@ -177,7 +139,6 @@ export async function POST(context: APIContext): Promise<Response> {
     if (assignmentError) {
       // Clean up if sector assignment fails
       await supabase.from("operators").delete().eq("id", operatorId);
-      await supabase.auth.admin.deleteUser(userId);
       const errorMsg = assignmentError instanceof Error ? assignmentError.message : String(assignmentError);
       return new Response(JSON.stringify({ success: false, error: `Failed to assign sectors: ${errorMsg}` }), {
         status: 500,
@@ -185,14 +146,12 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Return success response with operator details and temp password
+    // Return success response with operator details
     return new Response(
       JSON.stringify({
         success: true,
         operatorId,
         email,
-        tempPassword, // Display password once - admin must copy and share
-
         sectors: sectors as unknown as SectorInfo[],
       }),
       { status: 201, headers: { "Content-Type": "application/json" } },
@@ -253,8 +212,8 @@ export async function GET(context: APIContext): Promise<Response> {
       });
     }
 
-    // Fetch operators
-    let query = supabase.from("operators").select("id, user_id, deactivated_at, created_at");
+     // Fetch operators
+    let query = supabase.from("operators").select("id, email, deactivated_at, created_at");
 
     if (!includeDeactivated) {
       query = query.is("deactivated_at", null);
@@ -276,12 +235,6 @@ export async function GET(context: APIContext): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // Fetch auth users to get email addresses
-
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-
-    const emailMap = new Map((authUsers?.users ?? []).map((u) => [u.id, u.email]));
 
     // Fetch sector assignments for these operators
 
@@ -307,7 +260,7 @@ export async function GET(context: APIContext): Promise<Response> {
     const operatorList: OperatorListItem[] = operators.map((op) => ({
       id: op.id,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      email: emailMap.get(op.user_id) ?? "unknown",
+      email: op.email,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       sectorIds: (assignments ?? []).filter((a) => a.operator_id === op.id).map((a) => a.sector_id),
 
@@ -402,7 +355,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
         .from("operators")
         .update({ deactivated_at: new Date().toISOString() })
         .eq("id", operatorId)
-        .select("id, deactivated_at, created_at, user_id")
+        .select("id, email, deactivated_at, created_at")
         .single();
 
       if (error || !updated) {
@@ -415,20 +368,9 @@ export async function PATCH(context: APIContext): Promise<Response> {
         });
       }
 
-      // Fetch email for response
-      let email = "unknown";
-
-      if (updated.user_id) {
-        const { data: authUsers } = await supabase.auth.admin.listUsers();
-
-        const authUser = (authUsers?.users ?? []).find((u) => u.id === updated.user_id);
-
-        email = authUser?.email ?? "unknown";
-      }
-
       const response: OperatorInfo & { id: string } = {
         id: updated.id,
-        email,
+        email: updated.email,
 
         deactivatedAt: updated.deactivated_at,
 
