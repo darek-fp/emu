@@ -219,47 +219,57 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
   </div>
 
   <script>
-    const formContainer = document.getElementById("formContainer");
-    const addNewBtn = document.getElementById("addNewBtn");
-    const cancelBtn = document.getElementById("cancelBtn");
-    const deactivateBtns = document.querySelectorAll(".deactivateBtn");
+    const initializeForm = () => {
+      const formContainer = document.getElementById("formContainer");
+      const addNewBtn = document.getElementById("addNewBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const deactivateBtns = document.querySelectorAll(".deactivateBtn");
 
-    const showForm = () => {
-      formContainer?.classList.remove("hidden");
-    };
+      const showForm = () => {
+        formContainer?.classList.remove("hidden");
+      };
 
-    const hideForm = () => {
-      formContainer?.classList.add("hidden");
-    };
+      const hideForm = () => {
+        formContainer?.classList.add("hidden");
+      };
 
-    addNewBtn?.addEventListener("click", showForm);
-    cancelBtn?.addEventListener("click", hideForm);
+      addNewBtn?.addEventListener("click", showForm);
+      cancelBtn?.addEventListener("click", hideForm);
 
-    deactivateBtns.forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        const operatorId = (btn as HTMLElement).dataset.operatorId;
-        if (!operatorId) return;
+      deactivateBtns.forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const operatorId = (btn as HTMLElement).dataset.operatorId;
+          if (!operatorId) return;
 
-        if (!confirm("Are you sure you want to deactivate this operator?")) {
-          return;
-        }
-
-        try {
-          const response = await fetch(`/api/admin/operators/${operatorId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "deactivate" }),
-          });
-
-          if (response.ok) {
-            window.location.reload();
-          } else {
-            alert("Failed to deactivate operator");
+          if (!confirm("Are you sure you want to deactivate this operator?")) {
+            return;
           }
-        } catch (err) {
-          alert("Error deactivating operator");
-        }
+
+          try {
+            const response = await fetch(`/api/admin/operators/${operatorId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "deactivate" }),
+            });
+
+            if (response.ok) {
+              window.location.reload();
+            } else {
+              alert("Failed to deactivate operator");
+            }
+          } catch (err) {
+            alert("Error deactivating operator");
+          }
+        });
       });
-    });
+    };
+
+    // Wait for DOM to be fully loaded before attaching event listeners
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initializeForm);
+    } else {
+      initializeForm();
+    }
   </script>
+  } }); });
 </AdminLayout>
