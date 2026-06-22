@@ -646,10 +646,10 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [x] 3.1 Implement POST /api/admin/operators (create with temp password)
-- [x] 3.2 Implement GET /api/admin/operators (list)
-- [x] 3.3 Implement PATCH /api/admin/operators/:id (deactivate)
-- [x] 3.4 Implement generateTempPassword() helper
+- [x] 3.1 Implement POST /api/admin/operators (create with temp password) — d47c4af6
+- [x] 3.2 Implement GET /api/admin/operators (list) — d47c4af6
+- [x] 3.3 Implement PATCH /api/admin/operators/:id (deactivate) — d47c4af6
+- [x] 3.4 Implement generateTempPassword() helper — d47c4af6
 
 #### Manual
 
@@ -661,10 +661,10 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [ ] 4.1 Create PricingTierForm React component with validation
-- [ ] 4.2 Create /admin/pricing page with tier list
-- [ ] 4.3 Implement POST /api/admin/pricing (save tier)
-- [ ] 4.4 Type checking and linting pass
+- [x] 4.1 Create PricingTierForm React component with validation
+- [x] 4.2 Create /admin/pricing page with tier list
+- [x] 4.3 Implement POST /api/admin/pricing (save tier)
+- [x] 4.4 Type checking and linting pass
 
 #### Manual
 

@@ -1,0 +1,209 @@
+---
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { createClient } from "@/lib/supabase";
+import type { Database } from "@/database.types";
+
+type PricingTier = Database["public"]["Tables"]["pricing_tiers"]["Row"];
+type Sector = Database["public"]["Tables"]["sectors"]["Row"];
+
+// Check authentication
+const user = Astro.locals.user;
+const role = Astro.locals.role;
+
+if (!user || role !== "admin") {
+  return Astro.redirect("/auth/signin");
+}
+
+// Fetch sectors and pricing tiers
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+let sectors: Sector[] = [];
+let pricingTiers: PricingTier[] = [];
+let error = "";
+
+if (supabase) {
+  const { data: sectorsData, error: sectorsError } = await supabase
+    .from("sectors")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (sectorsError) {
+    error = `Failed to load sectors: ${sectorsError.message}`;
+  } else {
+    sectors = sectorsData ?? [];
+  }
+
+  const { data: tiersData, error: tiersError } = await supabase
+    .from("pricing_tiers")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (tiersError) {
+    error = `Failed to load pricing tiers: ${tiersError.message}`;
+  } else {
+    pricingTiers = tiersData ?? [];
+  }
+}
+
+// Group tiers by sector
+const tiersBySetor = new Map<string, PricingTier[]>();
+for (const tier of pricingTiers) {
+  if (tier.sector_id) {
+    if (!tiersBySetor.has(tier.sector_id)) {
+      tiersBySetor.set(tier.sector_id, []);
+    }
+    tiersBySetor.get(tier.sector_id)!.push(tier);
+  }
+}
+
+// Get active tier for each sector
+const activeTiersBySetor = new Map<string, PricingTier>();
+for (const [sectorId, tiers] of tiersBySetor) {
+  const activeTier = tiers.find((t) => t.ended_at === null);
+  if (activeTier) {
+    activeTiersBySetor.set(sectorId, activeTier);
+  }
+}
+---
+
+<AdminLayout title="Pricing Configuration">
+  <div class="space-y-6">
+    {error && <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>}
+
+    {
+      !error && (
+        <div>
+          <h1 class="mb-2 text-2xl font-bold text-gray-900">Pricing Configuration</h1>
+          <p class="text-gray-600">Manage pricing tiers per sector. Base rates, discount steps, and floors.</p>
+        </div>
+      )
+    }
+
+    <div class="space-y-4">
+      {
+        sectors.map((sector) => {
+          const activeTier = activeTiersBySetor.get(sector.id);
+          const allTiers = tiersBySetor.get(sector.id) ?? [];
+
+          return (
+            <div class="rounded-lg border border-gray-200 bg-white p-6">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-900">{sector.name}</h2>
+                  <p class="text-sm text-gray-500">ID: {sector.id}</p>
+                </div>
+                <button
+                  class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                  onclick="document.getElementById('modal-sector-' + this.dataset.sectorId).showModal()"
+                  data-sector-id={sector.id}
+                >
+                  Create New Tier
+                </button>
+              </div>
+
+              {activeTier ? (
+                <div class="rounded-lg bg-gray-50 p-4">
+                  <h3 class="mb-3 font-medium text-gray-900">Active Tier</h3>
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span class="text-gray-600">Base Rate:</span>
+                      <p class="font-semibold text-gray-900">${activeTier.base_daily_rate ?? 0}</p>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Daily Floor:</span>
+                      <p class="font-semibold text-gray-900">${activeTier.daily_floor ?? 0}</p>
+                    </div>
+                    <div class="col-span-2">
+                      <span class="text-gray-600">Created:</span>
+                      <p class="font-semibold text-gray-900">{new Date(activeTier.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+
+                  {activeTier.discount_steps && (
+                    <div class="mt-4">
+                      <h4 class="mb-2 text-sm font-medium text-gray-900">Discount Steps</h4>
+                      <div class="space-y-2">
+                        {Array.isArray(activeTier.discount_steps) &&
+                          activeTier.discount_steps.map((step: any) => (
+                            <div key={`${step.dayMin}-${step.dayMax}`} class="flex justify-between text-sm">
+                              <span class="text-gray-600">
+                                Days {step.dayMin}-{step.dayMax}:
+                              </span>
+                              <span class="font-medium text-gray-900">{step.discountPercent}% off</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    class="mt-4 inline-block text-sm text-blue-600 hover:text-blue-700"
+                    onclick="document.getElementById('modal-sector-' + this.dataset.sectorId).showModal()"
+                    data-sector-id={sector.id}
+                  >
+                    Edit Tier
+                  </button>
+                </div>
+              ) : (
+                <div class="rounded-lg bg-yellow-50 p-4 text-sm text-yellow-700">
+                  No active pricing tier configured for this sector.
+                </div>
+              )}
+
+              {allTiers.length > 1 && (
+                <details class="mt-4">
+                  <summary class="cursor-pointer text-sm text-gray-600 hover:text-gray-900">
+                    Show {allTiers.length - 1} archived tier(s)
+                  </summary>
+                  <div class="mt-2 space-y-2">
+                    {allTiers.map((tier) => {
+                      if (tier.ended_at === null) return null;
+                      return (
+                        <div key={tier.id} class="rounded bg-gray-100 p-2 text-xs text-gray-700">
+                          <div>
+                            Base: ${tier.base_daily_rate ?? 0} | Floor: ${tier.daily_floor ?? 0}
+                          </div>
+                          <div class="text-gray-600">Ended: {new Date(tier.ended_at).toLocaleDateString()}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+              )}
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+
+  {
+    sectors.map((sector) => (
+      <dialog id={`modal-sector-${sector.id}`} class="rounded-lg shadow-xl backdrop:bg-black/50 backdrop:opacity-75">
+        <div class="w-full max-w-md space-y-4 p-6">
+          <h2 class="text-xl font-bold text-gray-900">Pricing Tier for {sector.name}</h2>
+
+          {/* PricingTierForm component will be rendered here as an island */}
+          <div id={`pricing-form-${sector.id}`} />
+
+          <button
+            onclick="document.getElementById('modal-sector-' + this.dataset.sectorId).close()"
+            data-sector-id={sector.id}
+            class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
+    ))
+  }
+
+  <script>
+    // Attach close button handlers
+    document.querySelectorAll("dialog").forEach((dialog) => {
+      dialog.addEventListener("close", () => {
+        dialog.close();
+      });
+    });
+  </script>
+</AdminLayout>
