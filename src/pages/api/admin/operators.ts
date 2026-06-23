@@ -76,12 +76,14 @@ export async function POST(context: APIContext): Promise<Response> {
       const parsed = createOperatorSchema.parse(body);
       email = parsed.email.toLowerCase().trim();
       sectorIds = parsed.sectorIds;
+      console.log("[POST /api/admin/operators] Creating operator:", { email, sectorCount: sectorIds.length });
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         message = err.errors[0].message;
       }
+      console.error("[POST /api/admin/operators] Validation error:", message);
       return new Response(JSON.stringify({ success: false, error: message }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -101,6 +103,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const { data: sectors, error: sectorError } = await supabase.from("sectors").select("id, name").in("id", sectorIds);
 
     if (sectorError || sectors?.length !== sectorIds.length) {
+      console.error("[POST /api/admin/operators] Sector verification failed:", { sectorError, foundCount: sectors?.length, requestedCount: sectorIds.length });
       return new Response(JSON.stringify({ success: false, error: "One or more sectors not found" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -121,6 +124,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     if (operatorError || !operatorData?.id) {
       const errorMsg = operatorError instanceof Error ? operatorError.message : String(operatorError);
+      console.error("[POST /api/admin/operators] Failed to create operator record:", errorMsg);
       return new Response(JSON.stringify({ success: false, error: `Failed to create operator record: ${errorMsg}` }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
@@ -128,6 +132,7 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     const operatorId = operatorData.id;
+    console.log("[POST /api/admin/operators] Operator created:", { operatorId, email });
 
     // Insert sector assignments
     const assignmentData = sectorIds.map((sectorId) => ({
@@ -139,6 +144,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     if (assignmentError) {
       // Clean up if sector assignment fails
+      console.error("[POST /api/admin/operators] Sector assignment failed, rolling back:", assignmentError);
       await supabase.from("operators").delete().eq("id", operatorId);
       const errorMsg = assignmentError instanceof Error ? assignmentError.message : String(assignmentError);
       return new Response(JSON.stringify({ success: false, error: `Failed to assign sectors: ${errorMsg}` }), {
@@ -149,6 +155,8 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Return success response with operator details and temp password
     const tempPassword = generateTempPassword();
+    
+    console.log("[POST /api/admin/operators] Success response:", { operatorId, email, tempPassword: "***" });
     
     return new Response(
       JSON.stringify({

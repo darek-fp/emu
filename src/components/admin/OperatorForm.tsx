@@ -59,27 +59,33 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
         }),
       });
 
+      console.log("[OperatorForm] Response status:", response.status, "ok:", response.ok);
+
       if (!response.ok) {
         const data = (await response.json()) as { error?: string };
+        console.error("[OperatorForm] Error response:", data);
         setErrors({ submit: data.error ?? "Failed to create operator" });
         return;
       }
 
-      const data = (await response.json()) as OperatorResponse;
+      const data = (await response.json()) as { success?: boolean; operatorId?: string; email?: string; tempPassword?: string };
+      console.log("[OperatorForm] Success response:", data);
       
       // Verify required fields exist
       if (!data.operatorId || !data.email || !data.tempPassword) {
+        console.error("[OperatorForm] Missing required fields in response:", data);
         setErrors({ submit: "Invalid response from server - incomplete operator data" });
         return;
       }
       
-      setSuccessMessage(data);
+      setSuccessMessage(data as OperatorResponse);
       // Reset form
       setEmail("");
       setSelectedSectors([]);
       setErrors({});
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
+      console.error("[OperatorForm] Error:", message);
       setErrors({ submit: message });
     } finally {
       setIsSubmitting(false);
