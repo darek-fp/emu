@@ -224,6 +224,15 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       addNewBtn?.addEventListener("click", showForm);
       cancelBtn?.addEventListener("click", hideForm);
 
+      // Listen for operator created event to close form and reload
+      window.addEventListener("operatorCreated", () => {
+        hideForm();
+        // Reload page to show new operator in list
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      });
+
       deactivateBtns.forEach((btn) => {
         btn.addEventListener("click", async (e) => {
           const operatorId = (btn as HTMLElement).dataset.operatorId;

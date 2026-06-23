@@ -84,6 +84,10 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
     setEmail("");
     setSelectedSectors([]);
     setErrors({});
+    
+    // Emit a custom event so the page can close the form
+    window.dispatchEvent(new CustomEvent("operatorCreated"));
+    
     if (onSave) {
       onSave();
     }
