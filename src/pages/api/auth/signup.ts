@@ -22,19 +22,36 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Check if operator exists with this email
+    const normalizedEmail = email.toLowerCase().trim();
     const { data: operator, error: operatorError } = await supabase
       .from("operators")
-      .select("id, email")
-      .eq("email", email.toLowerCase())
+      .select("id, email, user_id")
+      .eq("email", normalizedEmail)
       .single();
 
     if (operatorError || !operator) {
+      console.error("[Signup API] Operator lookup failed:", {
+        searchEmail: normalizedEmail,
+        operatorError: operatorError?.message,
+      });
       return new Response(
         JSON.stringify({
           success: false,
           error: "This email is not registered as an operator. Contact an administrator.",
+          debug: process.env.NODE_ENV === "development" ? { searchedEmail: normalizedEmail } : undefined,
         }),
         { status: 403, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // Check if operator already has a user_id (account already created)
+    if (operator.user_id) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "An account for this email already exists. Please sign in instead.",
+        }),
+        { status: 409, headers: { "Content-Type": "application/json" } },
       );
     }
 
