@@ -5,19 +5,22 @@ import { PasswordToggle } from "@/components/auth/PasswordToggle";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { ServerError } from "@/components/auth/ServerError";
 
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
 
 interface Props {
   serverError?: string | null;
 }
 
-export default function SignUpForm({ serverError }: Props) {
+export default function SignUpForm({ serverError: initialServerError }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(initialServerError ?? null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   function validate() {
     const next: typeof errors = {};
@@ -48,10 +51,51 @@ export default function SignUpForm({ serverError }: Props) {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    
     if (!validate()) {
-      e.preventDefault();
+      return;
     }
+
+    setIsSubmitting(true);
+    setServerError(null);
+    
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = (await response.json()) as { success?: boolean; error?: string; message?: string };
+
+      if (!response.ok || !data.success) {
+        setServerError(data.error ?? "Failed to create account");
+        return;
+      }
+
+      setSuccessMessage(data.message ?? "Account created successfully! Please check your email to confirm.");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (successMessage) {
+    return (
+      <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4 text-center">
+        <h3 className="font-medium text-green-400">Success!</h3>
+        <p className="mt-2 text-sm text-green-300">{successMessage}</p>
+        <a href="/auth/signin" className="mt-4 inline-block text-blue-400 transition-colors hover:text-blue-300 hover:underline">
+          Go to Sign In
+        </a>
+      </div>
+    );
   }
 
   const passwordHint =
@@ -63,7 +107,7 @@ export default function SignUpForm({ serverError }: Props) {
     ) : undefined;
 
   return (
-    <form method="POST" action="/api/auth/signup" className="space-y-4" onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <FormField
         id="email"
         type="email"
@@ -87,7 +131,7 @@ export default function SignUpForm({ serverError }: Props) {
           setPassword(v);
           clearError("password");
         }}
-        placeholder="Min. 6 characters"
+        placeholder="Min. 8 characters"
         error={errors.password}
         hint={passwordHint}
         icon={<Lock className="size-4" />}
@@ -103,7 +147,6 @@ export default function SignUpForm({ serverError }: Props) {
 
       <FormField
         id="confirmPassword"
-        name="confirmPassword"
         label="Confirm password"
         type={showConfirmPassword ? "text" : "password"}
         value={confirmPassword}
@@ -126,7 +169,7 @@ export default function SignUpForm({ serverError }: Props) {
 
       <ServerError message={serverError} />
 
-      <SubmitButton pendingText="Creating account..." icon={<UserPlus className="size-4" />}>
+      <SubmitButton disabled={isSubmitting} pendingText="Creating account..." icon={<UserPlus className="size-4" />}>
         Create account
       </SubmitButton>
     </form>
