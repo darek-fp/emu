@@ -66,6 +66,13 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
       }
 
       const data = (await response.json()) as OperatorResponse;
+      
+      // Verify required fields exist
+      if (!data.operatorId || !data.email || !data.tempPassword) {
+        setErrors({ submit: "Invalid response from server - incomplete operator data" });
+        return;
+      }
+      
       setSuccessMessage(data);
       // Reset form
       setEmail("");
