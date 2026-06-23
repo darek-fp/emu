@@ -65,7 +65,7 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
       const data = (await response.json()) as { success?: boolean; error?: string; message?: string };
