@@ -682,13 +682,15 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 - [x] 5.4 Update reservations RLS to restrict by sector — f36ce77d
 - [x] 5.5 Type checking and linting pass — f36ce77d
 - [x] 5.6 Simplify operator creation: remove auth user creation, store email directly, update API — ddf29dc6
+- [x] 5.6b Restore temp password generation for admin to share with operator — 27cc48b6
 
 #### Manual
 
-- [ ] 5.7 Create operator via UI (email + sectors), verify stored correctly
-- [ ] 5.8 Verify operator can sign up separately via /auth/signup using their email
-- [ ] 5.9 Deactivate operator, verify status update
-- [ ] 5.10 Test operator sector restriction: try to create reservation in unassigned sector (should be rejected)
+- [ ] 5.7 Create operator via UI (email + sectors), copy temp password from success modal
+- [ ] 5.8 Operator signs up via /auth/signup with email + temp password (must change on first login)
+- [ ] 5.9 Log in as operator, verify only assigned sectors visible in dashboard
+- [ ] 5.10 Deactivate operator via UI, verify status update in list
+- [ ] 5.11 Test operator sector restriction: try to create reservation in unassigned sector (should be rejected)
 
 ### Phase 6: Reservation Integration & Price Calculation
 
