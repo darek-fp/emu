@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
+import { generateTempPassword } from "@/lib/auth";
 import { z } from "zod";
 
 export const prerender = false;
@@ -37,8 +38,7 @@ interface OperatorInfo {
 
 /**
  * POST /api/admin/operators
- * Create a new operator account with sector assignments.
- * Note: Auth user must be created separately via signup flow.
+ * Create a new operator account with sector assignments and generate temp password.
  *
  * Request body:
  * {
@@ -51,6 +51,7 @@ interface OperatorInfo {
  *   success: true,
  *   operatorId: "operator-uuid",
  *   email: "operator@example.com",
+ *   tempPassword: "GeneratedP@ss1234",
  *   sectors: [{ id: "sector-1", name: "Sector A" }]
  * }
  */
@@ -146,12 +147,15 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Return success response with operator details
+    // Return success response with operator details and temp password
+    const tempPassword = generateTempPassword();
+    
     return new Response(
       JSON.stringify({
         success: true,
         operatorId,
         email,
+        tempPassword,
         sectors: sectors as unknown as SectorInfo[],
       }),
       { status: 201, headers: { "Content-Type": "application/json" } },

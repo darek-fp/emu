@@ -8,6 +8,7 @@ interface OperatorFormProps {
 interface OperatorResponse {
   operatorId: string;
   email: string;
+  tempPassword: string;
 }
 
 export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
@@ -80,8 +81,17 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
 
   const handleCloseSuccess = () => {
     setSuccessMessage(null);
+    setEmail("");
+    setSelectedSectors([]);
+    setErrors({});
     if (onSave) {
       onSave();
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (successMessage) {
+      void navigator.clipboard.writeText(successMessage.tempPassword);
     }
   };
 
@@ -91,17 +101,26 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
         <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
           <h3 className="font-medium text-green-400">Operator Created Successfully</h3>
           <p className="mt-2 text-sm text-green-300">
-            Operator account has been created. The operator can now sign up and create an account.
+            Operator account has been created. Share this temporary password with the operator:
           </p>
           <div className="mt-4 space-y-2">
-            <div className="text-sm text-white">
-              <span className="font-medium">Email:</span> {successMessage.email}
-            </div>
-            <div className="text-sm text-white">
-              <span className="font-medium">Operator ID:</span> {successMessage.operatorId}
+            <div>
+              <span className="font-medium text-white">Temp Password:</span>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="flex-1 rounded border border-white/20 bg-white/10 px-3 py-2 font-mono text-sm break-all text-white">
+                  {successMessage.tempPassword}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyPassword}
+                  className="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:border-white/50 hover:bg-white/10"
+                >
+                  Copy
+                </button>
+              </div>
             </div>
           </div>
-          <p className="mt-4 text-xs text-green-300">The operator can now sign up using this email address.</p>
+          <p className="mt-4 text-xs text-green-300">The operator must change this password on first login.</p>
         </div>
         <div className="flex gap-3">
           <button

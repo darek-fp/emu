@@ -681,7 +681,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 - [x] 5.3 Update middleware to attach operator sector assignments — f36ce77d
 - [x] 5.4 Update reservations RLS to restrict by sector — f36ce77d
 - [x] 5.5 Type checking and linting pass — f36ce77d
-- [x] 5.6 Simplify operator creation: remove auth user creation, store email directly, update API — (pending commit)
+- [x] 5.6 Simplify operator creation: remove auth user creation, store email directly, update API — ddf29dc6
 
 #### Manual
 
