@@ -684,6 +684,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 - [x] 5.6 Simplify operator creation: remove auth user creation, store email directly, update API — ddf29dc6
 - [x] 5.6b Restore temp password generation for admin to share with operator — 27cc48b6
 - [x] 5.6c Enable operator signup and fix UI issues (temp password works, form closes, admin link added) — 22dd907f
+- [x] 5.6d Fix SignUpForm to use JSON API submission instead of form POST — 0a5526ae
 
 #### Manual
 
