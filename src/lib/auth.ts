@@ -47,6 +47,42 @@ export function generateTempPassword(): string {
 }
 
 /**
+ * Hash a password using a simple method (in production, use bcrypt or argon2)
+ * For temp passwords, we use a basic hash so they're not stored in plaintext.
+ * 
+ * Note: This is a simple implementation. For production, use a proper password hashing library.
+ * 
+ * @param password The password to hash
+ * @returns Base64-encoded hash
+ */
+export function hashPassword(password: string): string {
+  // Use TextEncoder to convert string to bytes, then create a simple hash
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "temp_salt_key");
+  
+  // Create a simple hash by computing character codes (NOT cryptographically secure)
+  // This is sufficient for comparing temp passwords since they're short-lived
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    hash = ((hash << 5) - hash) + data[i];
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return Buffer.from(Math.abs(hash).toString()).toString("base64");
+}
+
+/**
+ * Verify a password against its hash
+ * 
+ * @param password The plaintext password to verify
+ * @param hash The stored hash to compare against
+ * @returns True if password matches the hash
+ */
+export function verifyPassword(password: string, hash: string): boolean {
+  return hashPassword(password) === hash;
+}
+
+/**
  * Verify that a password meets minimum requirements.
  * Used for validation when operators change their password on first login.
  *

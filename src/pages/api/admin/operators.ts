@@ -1,6 +1,6 @@
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
-import { generateTempPassword } from "@/lib/auth";
+import { generateTempPassword, hashPassword } from "@/lib/auth";
 import { z } from "zod";
 
 export const prerender = false;
@@ -110,10 +110,17 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
+    // Generate temporary password
+    const tempPassword = generateTempPassword();
+    const tempPasswordHash = hashPassword(tempPassword);
+    const tempPasswordExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Expires in 24 hours
+
     // Create operators table record using admin function (bypasses RLS)
     // First check if the RPC function exists by trying to call it
     const { data: operatorIdData, error: operatorError } = await supabase.rpc("create_operator_by_admin", { 
       p_email: email,
+      p_temp_password_hash: tempPasswordHash,
+      p_temp_password_expires_at: tempPasswordExpiresAt,
     });
 
     if (operatorError) {

@@ -1,17 +1,19 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { verifyPassword } from "@/lib/auth";
 import { z } from "zod";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  tempPassword: z.string().min(1, "Temporary password is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-// Operator signup endpoint - allows pre-created operators to sign up with temp password
+// Operator signup endpoint - validates temp password and creates auth user
 export const POST: APIRoute = async (context) => {
   try {
     const body = (await context.request.json()) as unknown;
-    const { email, password } = signupSchema.parse(body);
+    const { email, tempPassword, newPassword } = signupSchema.parse(body);
 
     const supabase = createClient(context.request.headers, context.cookies);
     if (!supabase) {
@@ -21,11 +23,11 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Check if operator exists with this email
+    // Check if operator exists with this email and has temp password set
     const normalizedEmail = email.toLowerCase().trim();
     const { data: operator, error: operatorError } = await supabase
       .from("operators")
-      .select("id, email, user_id")
+      .select("id, user_id, temp_password_hash, temp_password_expires_at")
       .eq("email", normalizedEmail)
       .single();
 
@@ -55,10 +57,45 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Create auth user with provided password
+    // Verify temporary password is set and hasn't expired
+    if (!operator.temp_password_hash) {
+      console.error("[Signup API] Operator has no temp password set:", { operatorId: operator.id });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "No temporary password found. Contact your administrator.",
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    if (operator.temp_password_expires_at && new Date(operator.temp_password_expires_at) < new Date()) {
+      console.error("[Signup API] Temp password expired:", { operatorId: operator.id, expiresAt: operator.temp_password_expires_at });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Temporary password has expired. Please contact your administrator for a new one.",
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // Verify the provided temp password matches
+    if (!verifyPassword(tempPassword, operator.temp_password_hash)) {
+      console.error("[Signup API] Invalid temp password provided:", { operatorId: operator.id });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Invalid temporary password. Please check and try again.",
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // Create auth user with the new password
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
+      email: normalizedEmail,
+      password: newPassword,
       options: {
         data: {
           role: "operator",
@@ -67,6 +104,7 @@ export const POST: APIRoute = async (context) => {
     });
 
     if (authError || !authData.user) {
+      console.error("[Signup API] Auth user creation failed:", { authError: authError?.message });
       return new Response(
         JSON.stringify({
           success: false,
@@ -76,13 +114,18 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Update operator record with auth user ID
+    // Update operator record with auth user ID and clear temp password
     const { error: updateError } = await supabase
       .from("operators")
-      .update({ user_id: authData.user.id })
+      .update({
+        user_id: authData.user.id,
+        temp_password_hash: null,
+        temp_password_expires_at: null,
+      })
       .eq("id", operator.id);
 
     if (updateError) {
+      console.error("[Signup API] Failed to link account:", { updateError: updateError.message });
       return new Response(
         JSON.stringify({
           success: false,
@@ -92,10 +135,12 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
+    console.log("[Signup API] Operator account created successfully:", { operatorId: operator.id, email: normalizedEmail });
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Account created successfully. Please check your email to confirm.",
+        message: "Account created successfully. You can now sign in with your new password.",
       }),
       { status: 201, headers: { "Content-Type": "application/json" } },
     );
@@ -105,6 +150,7 @@ export const POST: APIRoute = async (context) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       message = err.errors[0].message;
     }
+    console.error("[Signup API] Validation error:", message);
     return new Response(JSON.stringify({ success: false, error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

@@ -3,15 +3,17 @@ import Layout from "@/layouts/Layout.astro";
 import SignUpForm from "@/components/auth/SignUpForm";
 ---
 
-<Layout title="Sign Up">
+<Layout title="Sign Up - Operator Setup">
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
     <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
       <h1
         class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-center text-2xl font-bold text-transparent"
       >
-        Create Account
+        Set Up Your Account
       </h1>
-      <p class="mb-6 text-center text-sm text-white/70">Sign up with your email and temporary password</p>
+      <p class="mb-6 text-center text-sm text-white/70">
+        Enter the email and temporary password provided by your administrator to create your account.
+      </p>
       <SignUpForm client:load />
     </div>
   </div>

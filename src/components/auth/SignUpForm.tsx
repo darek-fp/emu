@@ -13,11 +13,13 @@ interface Props {
 
 export default function SignUpForm({ serverError: initialServerError }: Props) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showTempPassword, setShowTempPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; tempPassword?: string; newPassword?: string; confirmPassword?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(initialServerError ?? null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -31,15 +33,19 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
       next.email = "Enter a valid email address";
     }
 
-    if (!password) {
-      next.password = "Password is required";
-    } else if (password.length < MIN_PASSWORD_LENGTH) {
-      next.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
+    if (!tempPassword) {
+      next.tempPassword = "Temporary password is required";
+    }
+
+    if (!newPassword) {
+      next.newPassword = "New password is required";
+    } else if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      next.newPassword = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
     }
 
     if (!confirmPassword) {
-      next.confirmPassword = "Please confirm your password";
-    } else if (password !== confirmPassword) {
+      next.confirmPassword = "Please confirm your new password";
+    } else if (newPassword !== confirmPassword) {
       next.confirmPassword = "Passwords do not match";
     }
 
@@ -65,7 +71,11 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(),
+          tempPassword: tempPassword.trim(),
+          newPassword,
+        }),
       });
 
       const data = (await response.json()) as { success?: boolean; error?: string; message?: string };
@@ -75,9 +85,10 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
         return;
       }
 
-      setSuccessMessage(data.message ?? "Account created successfully! Please check your email to confirm.");
+      setSuccessMessage(data.message ?? "Account created successfully! You can now sign in.");
       setEmail("");
-      setPassword("");
+      setTempPassword("");
+      setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "An error occurred");
@@ -98,11 +109,11 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
     );
   }
 
-  const passwordHint =
-    !errors.password && password.length > 0 && password.length < MIN_PASSWORD_LENGTH ? (
+  const newPasswordHint =
+    !errors.newPassword && newPassword.length > 0 && newPassword.length < MIN_PASSWORD_LENGTH ? (
       <p className="mt-1 text-xs text-blue-100/50">
-        {MIN_PASSWORD_LENGTH - password.length} more character
-        {MIN_PASSWORD_LENGTH - password.length !== 1 ? "s" : ""} needed
+        {MIN_PASSWORD_LENGTH - newPassword.length} more character
+        {MIN_PASSWORD_LENGTH - newPassword.length !== 1 ? "s" : ""} needed
       </p>
     ) : undefined;
 
@@ -123,23 +134,45 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
       />
 
       <FormField
-        id="password"
-        label="Password"
-        type={showPassword ? "text" : "password"}
-        value={password}
+        id="tempPassword"
+        label="Temporary Password (from admin)"
+        type={showTempPassword ? "text" : "password"}
+        value={tempPassword}
         onChange={(v) => {
-          setPassword(v);
-          clearError("password");
+          setTempPassword(v);
+          clearError("tempPassword");
         }}
-        placeholder="Min. 8 characters"
-        error={errors.password}
-        hint={passwordHint}
+        placeholder="Paste the password admin gave you"
+        error={errors.tempPassword}
         icon={<Lock className="size-4" />}
         endContent={
           <PasswordToggle
-            visible={showPassword}
+            visible={showTempPassword}
             onToggle={() => {
-              setShowPassword(!showPassword);
+              setShowTempPassword(!showTempPassword);
+            }}
+          />
+        }
+      />
+
+      <FormField
+        id="newPassword"
+        label="New Password"
+        type={showNewPassword ? "text" : "password"}
+        value={newPassword}
+        onChange={(v) => {
+          setNewPassword(v);
+          clearError("newPassword");
+        }}
+        placeholder="Create a strong password"
+        error={errors.newPassword}
+        hint={newPasswordHint}
+        icon={<Lock className="size-4" />}
+        endContent={
+          <PasswordToggle
+            visible={showNewPassword}
+            onToggle={() => {
+              setShowNewPassword(!showNewPassword);
             }}
           />
         }
@@ -147,14 +180,14 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
 
       <FormField
         id="confirmPassword"
-        label="Confirm password"
+        label="Confirm New Password"
         type={showConfirmPassword ? "text" : "password"}
         value={confirmPassword}
         onChange={(v) => {
           setConfirmPassword(v);
           clearError("confirmPassword");
         }}
-        placeholder="Re-enter your password"
+        placeholder="Re-enter your new password"
         error={errors.confirmPassword}
         icon={<Lock className="size-4" />}
         endContent={
