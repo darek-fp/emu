@@ -67,16 +67,20 @@ if (supabase) {
 // Map sector IDs to names for display
 const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
 
-// Group assignments by operator
+// Group assignments by operator (for display - sector names)
 const assignmentsByOperator = new Map<string, string[]>();
+// Group assignments by operator (for edit - sector IDs)
+const assignmentIdsByOperator = new Map<string, string[]>();
 for (const assignment of assignments) {
   if (!assignmentsByOperator.has(assignment.operator_id)) {
     assignmentsByOperator.set(assignment.operator_id, []);
+    assignmentIdsByOperator.set(assignment.operator_id, []);
   }
   const sectorName = sectorMap.get(assignment.sector_id);
   if (sectorName) {
     assignmentsByOperator.get(assignment.operator_id)!.push(sectorName);
   }
+  assignmentIdsByOperator.get(assignment.operator_id)!.push(assignment.sector_id);
 }
 
 // Get active and deactivated operators
@@ -146,7 +150,7 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
                             class="editBtn rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                             data-operator-id={operator.id}
                             data-operator-email={operator.email}
-                            data-operator-sectors={JSON.stringify(assignmentsByOperator.get(operator.id) ?? [])}
+                            data-operator-sectors={JSON.stringify(assignmentIdsByOperator.get(operator.id) ?? [])}
                           >
                             Edit
                           </button>
@@ -339,5 +343,4 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       initializeForm();
     }
   </script>
-  } }); });
 </AdminLayout>
