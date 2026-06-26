@@ -1,7 +1,7 @@
 ---
 import AdminLayout from "@/layouts/AdminLayout.astro";
 import { OperatorForm } from "@/components/admin/OperatorForm";
-import { EditOperatorForm } from "@/components/admin/EditOperatorForm";
+import { OperatorSectorEditor } from "@/components/admin/OperatorSectorEditor";
 import { createClient } from "@/lib/supabase";
 import type { Database } from "@/database.types";
 
@@ -219,13 +219,7 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
     <div id="editFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
       <h2 class="mb-4 text-xl font-semibold text-white">Edit Operator Sectors</h2>
 
-      <EditOperatorForm
-        client:load
-        operatorId=""
-        email=""
-        currentSectorIds={[]}
-        sectors={sectors}
-      />
+      <OperatorSectorEditor client:load sectors={sectors} />
     </div>
   </div>
 
@@ -283,7 +277,7 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
           const operatorId = (btn as HTMLElement).dataset.operatorId;
           const operatorEmail = (btn as HTMLElement).dataset.operatorEmail;
           const operatorSectorsStr = (btn as HTMLElement).dataset.operatorSectors;
-          
+
           if (!operatorId || !operatorEmail) return;
 
           let sectorIds: string[] = [];
@@ -295,15 +289,18 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
 
           showEditForm();
 
-          // Create a new instance of EditOperatorForm with the right props
-          const editForm = editFormContainer?.querySelector("div[astro-view]");
-          if (editForm) {
-            // Trigger component update - We need a better way to pass props
-            // For now, we'll use data attributes
-            editFormContainer?.setAttribute("data-operator-id", operatorId);
-            editFormContainer?.setAttribute("data-operator-email", operatorEmail);
-            editFormContainer?.setAttribute("data-sector-ids", sectorIds.join(","));
-          }
+          // Emit edit event with operator data
+          const operatorData = {
+            operatorId,
+            email: operatorEmail,
+            currentSectorIds: sectorIds,
+          };
+
+          window.dispatchEvent(
+            new CustomEvent("editOperator", {
+              detail: operatorData,
+            }),
+          );
         });
       });
 

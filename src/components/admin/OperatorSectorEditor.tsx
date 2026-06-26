@@ -1,44 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-interface EditOperatorFormProps {
-  operatorId?: string;
-  email?: string;
-  currentSectorIds?: string[];
+interface OperatorSectorEditorProps {
   sectors: { id: string; name: string }[];
-  onSave?: () => void;
-  onCancel?: () => void;
 }
 
-export function EditOperatorForm({
-  operatorId = "",
-  email = "",
-  currentSectorIds = [],
-  sectors,
-  onSave,
-  onCancel,
-}: EditOperatorFormProps) {
-  const [selectedSectors, setSelectedSectors] = useState<string[]>(currentSectorIds);
+interface OperatorData {
+  operatorId: string;
+  email: string;
+  currentSectorIds: string[];
+}
+
+export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
+  const [operator, setOperator] = useState<OperatorData | null>(null);
+  const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
-  const [displayEmail, setDisplayEmail] = useState(email);
 
-  // Update form when data attributes change
-  useEffect(() => {
-    const container = document.getElementById("editFormContainer");
-    if (container) {
-      const opId = container.getAttribute("data-operator-id");
-      const opEmail = container.getAttribute("data-operator-email");
-      const sectorStr = container.getAttribute("data-sector-ids");
+  // Listen for edit requests
+  React.useEffect(() => {
+    const handleEditOperator = (e: Event) => {
+      const event = e as CustomEvent;
+      const data = event.detail as OperatorData;
+      setOperator(data);
+      setSelectedSectors(data.currentSectorIds);
+      setErrors({});
+      setSuccessMessage(false);
+    };
 
-      if (opEmail) {
-        setDisplayEmail(opEmail);
-      }
-      if (sectorStr) {
-        setSelectedSectors(sectorStr.split(",").filter((s) => s));
-      }
-    }
+    window.addEventListener("editOperator", handleEditOperator);
+    return () => window.removeEventListener("editOperator", handleEditOperator);
   }, []);
+
+  if (!operator) {
+    return null;
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -60,21 +56,13 @@ export function EditOperatorForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
-
-    const container = document.getElementById("editFormContainer");
-    const opId = container?.getAttribute("data-operator-id") || operatorId;
-
-    if (!opId) {
-      setErrors({ submit: "No operator selected" });
+    if (!validateForm() || !operator) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/admin/operators/${opId}`, {
+      const response = await fetch(`/api/admin/operators/${operator.operatorId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -93,16 +81,19 @@ export function EditOperatorForm({
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent("operatorUpdated"));
       }, 500);
-
-      if (onSave) {
-        onSave();
-      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setErrors({ submit: message });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCancel = () => {
+    setOperator(null);
+    setSelectedSectors([]);
+    setErrors({});
+    setSuccessMessage(false);
   };
 
   if (successMessage) {
@@ -130,7 +121,7 @@ export function EditOperatorForm({
       <div>
         <label className="block text-sm font-medium text-white/80">Operator Email</label>
         <div className="mt-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
-          {displayEmail}
+          {operator.email}
         </div>
       </div>
 
@@ -173,7 +164,7 @@ export function EditOperatorForm({
         </button>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
         >
           Cancel
