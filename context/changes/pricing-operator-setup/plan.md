@@ -687,7 +687,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 - [x] 5.6d Fix SignUpForm to use JSON API submission instead of form POST — 0a5526ae
 - [x] 5.6e Improve signup form styling and email normalization — da002c09
 - [x] 5.6f Add validation for operator creation response — c202fb32
-- [x] 5.6g Simplify operator creation flow: admins create operators with passwords directly, operators log in immediately — (pending)
+- [x] 5.6g Simplify operator creation flow: admins create operators with passwords directly, operators log in immediately — 41a522e6
 
 #### Manual
 
