@@ -368,6 +368,10 @@ export async function PATCH(context: APIContext): Promise<Response> {
     const pathSegments = url.pathname.split("/");
     const operatorId = pathSegments[pathSegments.length - 1];
 
+    console.log("[PATCH /api/admin/operators/:id] URL:", url.pathname);
+    console.log("[PATCH /api/admin/operators/:id] Path segments:", pathSegments);
+    console.log("[PATCH /api/admin/operators/:id] Operator ID:", operatorId);
+
     if (!operatorId || operatorId === "operators") {
       return new Response(JSON.stringify({ success: false, error: "Invalid operator ID" }), {
         status: 400,
@@ -413,14 +417,20 @@ export async function PATCH(context: APIContext): Promise<Response> {
         });
       }
 
+      console.log("[PATCH updateSectors] Updating sectors for operator:", operatorId);
+      console.log("[PATCH updateSectors] New sector IDs:", sectorIds);
+
       // Delete existing assignments
       const { error: deleteError } = await supabase
         .from("operator_sector_assignments")
         .delete()
         .eq("operator_id", operatorId);
 
+      console.log("[PATCH updateSectors] Delete result:", { error: deleteError });
+
       if (deleteError) {
         const errorMsg = deleteError instanceof Error ? deleteError.message : String(deleteError);
+        console.error("[PATCH updateSectors] Delete error:", errorMsg);
         return new Response(JSON.stringify({ success: false, error: `Failed to update sectors: ${errorMsg}` }), {
           status: 500,
           headers: { "Content-Type": "application/json" },
@@ -433,10 +443,15 @@ export async function PATCH(context: APIContext): Promise<Response> {
         sector_id: sectorId,
       }));
 
+      console.log("[PATCH updateSectors] Inserting assignments:", newAssignments);
+
       const { error: insertError } = await supabase.from("operator_sector_assignments").insert(newAssignments);
+
+      console.log("[PATCH updateSectors] Insert result:", { error: insertError });
 
       if (insertError) {
         const errorMsg = insertError instanceof Error ? insertError.message : String(insertError);
+        console.error("[PATCH updateSectors] Insert error:", errorMsg);
         return new Response(JSON.stringify({ success: false, error: `Failed to assign sectors: ${errorMsg}` }), {
           status: 500,
           headers: { "Content-Type": "application/json" },
