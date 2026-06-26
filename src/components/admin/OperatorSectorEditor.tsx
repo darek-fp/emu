@@ -72,15 +72,31 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
       });
 
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        setErrors({ submit: data.error ?? "Failed to update operator sectors" });
+        const text = await response.text();
+        try {
+          const data = JSON.parse(text);
+          setErrors({ submit: data.error ?? "Failed to update operator sectors" });
+        } catch {
+          setErrors({ submit: `Failed to update operator sectors: ${response.statusText}` });
+        }
         return;
       }
 
-      setSuccessMessage(true);
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("operatorUpdated"));
-      }, 500);
+      const text = await response.text();
+      if (!text) {
+        setErrors({ submit: "Empty response from server" });
+        return;
+      }
+
+      try {
+        const data = JSON.parse(text);
+        setSuccessMessage(true);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("operatorUpdated"));
+        }, 500);
+      } catch (parseErr) {
+        setErrors({ submit: "Invalid response format from server" });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setErrors({ submit: message });

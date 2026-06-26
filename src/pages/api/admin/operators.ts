@@ -448,6 +448,8 @@ export async function PATCH(context: APIContext): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    if (action === "deactivate") {
       // Soft-delete: set deactivated_at timestamp
 
       const { data: updated, error } = await supabase
