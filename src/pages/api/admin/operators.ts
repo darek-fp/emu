@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { createClient } from "@/lib/supabase";
+import { createClient, createAdminClient } from "@/lib/supabase";
 import { z } from "zod";
 
 export const prerender = false;
@@ -112,8 +112,17 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Create auth user first
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Create auth user using admin client (required for user creation)
+    const adminClient = createAdminClient();
+    if (!adminClient) {
+      console.error("[POST /api/admin/operators] Failed to create admin client");
+      return new Response(
+        JSON.stringify({ success: false, error: "Server configuration error" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -153,7 +162,7 @@ export async function POST(context: APIContext): Promise<Response> {
       
       // Clean up auth user if operator creation fails
       try {
-        await supabase.auth.admin.deleteUser(userId);
+        await adminClient.auth.admin.deleteUser(userId);
       } catch (cleanupErr) {
         console.error("[POST /api/admin/operators] Failed to clean up auth user:", cleanupErr);
       }
