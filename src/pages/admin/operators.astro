@@ -1,6 +1,7 @@
 ---
 import AdminLayout from "@/layouts/AdminLayout.astro";
 import { OperatorForm } from "@/components/admin/OperatorForm";
+import { EditOperatorForm } from "@/components/admin/EditOperatorForm";
 import { createClient } from "@/lib/supabase";
 import type { Database } from "@/database.types";
 
@@ -140,12 +141,22 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
                         {new Date(operator.created_at).toLocaleDateString()}
                       </td>
                       <td class="px-6 py-4 text-right">
-                        <button
-                          class="deactivateBtn rounded bg-red-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                          data-operator-id={operator.id}
-                        >
-                          Deactivate
-                        </button>
+                        <div class="flex justify-end gap-2">
+                          <button
+                            class="editBtn rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                            data-operator-id={operator.id}
+                            data-operator-email={operator.email}
+                            data-operator-sectors={JSON.stringify(assignmentsByOperator.get(operator.id) ?? [])}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            class="deactivateBtn rounded bg-red-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                            data-operator-id={operator.id}
+                          >
+                            Deactivate
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -204,21 +215,45 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
 
       <OperatorForm client:load sectors={sectors} />
     </div>
+
+    <div id="editFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-xl font-semibold text-white">Edit Operator Sectors</h2>
+
+      <EditOperatorForm
+        client:load
+        operatorId=""
+        email=""
+        currentSectorIds={[]}
+        sectors={sectors}
+      />
+    </div>
   </div>
 
   <script>
     const initializeForm = () => {
       const formContainer = document.getElementById("formContainer");
+      const editFormContainer = document.getElementById("editFormContainer");
       const addNewBtn = document.getElementById("addNewBtn");
       const cancelBtn = document.getElementById("formCancelBtn");
+      const editBtns = document.querySelectorAll(".editBtn");
       const deactivateBtns = document.querySelectorAll(".deactivateBtn");
 
       const showForm = () => {
         formContainer?.classList.remove("hidden");
+        editFormContainer?.classList.add("hidden");
       };
 
       const hideForm = () => {
         formContainer?.classList.add("hidden");
+      };
+
+      const showEditForm = () => {
+        editFormContainer?.classList.remove("hidden");
+        formContainer?.classList.add("hidden");
+      };
+
+      const hideEditForm = () => {
+        editFormContainer?.classList.add("hidden");
       };
 
       addNewBtn?.addEventListener("click", showForm);
@@ -231,6 +266,45 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
         setTimeout(() => {
           window.location.reload();
         }, 500);
+      });
+
+      // Listen for operator updated event to close form and reload
+      window.addEventListener("operatorUpdated", () => {
+        hideEditForm();
+        // Reload page to show updated operator
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      });
+
+      // Edit button handlers
+      editBtns.forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const operatorId = (btn as HTMLElement).dataset.operatorId;
+          const operatorEmail = (btn as HTMLElement).dataset.operatorEmail;
+          const operatorSectorsStr = (btn as HTMLElement).dataset.operatorSectors;
+          
+          if (!operatorId || !operatorEmail) return;
+
+          let sectorIds: string[] = [];
+          try {
+            sectorIds = operatorSectorsStr ? JSON.parse(operatorSectorsStr) : [];
+          } catch {
+            // Fallback to empty array
+          }
+
+          showEditForm();
+
+          // Create a new instance of EditOperatorForm with the right props
+          const editForm = editFormContainer?.querySelector("div[astro-view]");
+          if (editForm) {
+            // Trigger component update - We need a better way to pass props
+            // For now, we'll use data attributes
+            editFormContainer?.setAttribute("data-operator-id", operatorId);
+            editFormContainer?.setAttribute("data-operator-email", operatorEmail);
+            editFormContainer?.setAttribute("data-sector-ids", sectorIds.join(","));
+          }
+        });
       });
 
       deactivateBtns.forEach((btn) => {

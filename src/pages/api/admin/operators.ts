@@ -12,7 +12,8 @@ const createOperatorSchema = z.object({
 });
 
 const deactivateOperatorSchema = z.object({
-  action: z.enum(["deactivate"]),
+  action: z.enum(["deactivate", "updateSectors"]),
+  sectorIds: z.array(z.uuid()).optional(),
 });
 
 // Response types
@@ -376,10 +377,12 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
     // Parse and validate request body
     let action: string;
+    let sectorIds: string[] = [];
     try {
       const body = (await context.request.json()) as unknown;
       const parsed = deactivateOperatorSchema.parse(body);
       action = parsed.action;
+      sectorIds = parsed.sectorIds ?? [];
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
@@ -401,7 +404,50 @@ export async function PATCH(context: APIContext): Promise<Response> {
       });
     }
 
-    if (action === "deactivate") {
+    if (action === "updateSectors") {
+      // Update operator sector assignments
+      if (sectorIds.length === 0) {
+        return new Response(JSON.stringify({ success: false, error: "At least one sector must be assigned" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Delete existing assignments
+      const { error: deleteError } = await supabase
+        .from("operator_sector_assignments")
+        .delete()
+        .eq("operator_id", operatorId);
+
+      if (deleteError) {
+        const errorMsg = deleteError instanceof Error ? deleteError.message : String(deleteError);
+        return new Response(JSON.stringify({ success: false, error: `Failed to update sectors: ${errorMsg}` }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Insert new assignments
+      const newAssignments = sectorIds.map((sectorId) => ({
+        operator_id: operatorId,
+        sector_id: sectorId,
+      }));
+
+      const { error: insertError } = await supabase.from("operator_sector_assignments").insert(newAssignments);
+
+      if (insertError) {
+        const errorMsg = insertError instanceof Error ? insertError.message : String(insertError);
+        return new Response(JSON.stringify({ success: false, error: `Failed to assign sectors: ${errorMsg}` }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "Sectors updated successfully" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
       // Soft-delete: set deactivated_at timestamp
 
       const { data: updated, error } = await supabase
