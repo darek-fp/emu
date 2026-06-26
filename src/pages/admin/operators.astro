@@ -110,6 +110,7 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
           id="addNewBtn"
           type="button"
           class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-lg transition-colors hover:bg-green-700"
+          onclick="document.getElementById('formContainer').classList.remove('hidden'); document.getElementById('editFormContainer').classList.add('hidden');"
         >
           + Add Operator
         </button>
@@ -148,9 +149,28 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
                         <div class="flex justify-end gap-2">
                           <button
                             class="editBtn rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                            type="button"
                             data-operator-id={operator.id}
                             data-operator-email={operator.email}
                             data-operator-sectors={JSON.stringify(assignmentIdsByOperator.get(operator.id) ?? [])}
+                            onclick={`
+                              const btn = event.target;
+                              const operatorId = btn.getAttribute('data-operator-id');
+                              const operatorEmail = btn.getAttribute('data-operator-email');
+                              const sectorStr = btn.getAttribute('data-operator-sectors');
+                              const sectorIds = sectorStr ? JSON.parse(sectorStr) : [];
+                              
+                              document.getElementById('editFormContainer').classList.remove('hidden');
+                              document.getElementById('formContainer').classList.add('hidden');
+                              
+                              window.dispatchEvent(new CustomEvent('editOperator', {
+                                detail: {
+                                  operatorId,
+                                  email: operatorEmail,
+                                  currentSectorIds: sectorIds
+                                }
+                              }));
+                            `}
                           >
                             Edit
                           </button>
@@ -228,93 +248,32 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
   </div>
 
   <script>
-    const initializeForm = () => {
-      const formContainer = document.getElementById("formContainer");
-      const editFormContainer = document.getElementById("editFormContainer");
-      const addNewBtn = document.getElementById("addNewBtn");
-      const editBtns = document.querySelectorAll(".editBtn");
+    // Simple event listeners for form visibility
+    window.addEventListener("operatorCreated", () => {
+      document.getElementById("formContainer")?.classList.add("hidden");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    });
+
+    window.addEventListener("operatorUpdated", () => {
+      document.getElementById("editFormContainer")?.classList.add("hidden");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    });
+
+    window.addEventListener("cancelForm", () => {
+      document.getElementById("formContainer")?.classList.add("hidden");
+    });
+
+    window.addEventListener("cancelEditForm", () => {
+      document.getElementById("editFormContainer")?.classList.add("hidden");
+    });
+
+    // Deactivate button handlers
+    document.addEventListener("DOMContentLoaded", () => {
       const deactivateBtns = document.querySelectorAll(".deactivateBtn");
-
-      const showForm = () => {
-        formContainer?.classList.remove("hidden");
-        editFormContainer?.classList.add("hidden");
-      };
-
-      const hideForm = () => {
-        formContainer?.classList.add("hidden");
-      };
-
-      const showEditForm = () => {
-        editFormContainer?.classList.remove("hidden");
-        formContainer?.classList.add("hidden");
-      };
-
-      const hideEditForm = () => {
-        editFormContainer?.classList.add("hidden");
-      };
-
-      addNewBtn?.addEventListener("click", showForm);
-
-      // Listen for cancel event from forms
-      window.addEventListener("cancelForm", () => {
-        hideForm();
-      });
-
-      window.addEventListener("cancelEditForm", () => {
-        hideEditForm();
-      });
-
-      // Listen for operator created event to close form and reload
-      window.addEventListener("operatorCreated", () => {
-        hideForm();
-        // Reload page to show new operator in list
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      });
-
-      // Listen for operator updated event to close form and reload
-      window.addEventListener("operatorUpdated", () => {
-        hideEditForm();
-        // Reload page to show updated operator
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      });
-
-      // Edit button handlers
-      editBtns.forEach((btn) => {
-        btn.addEventListener("click", async (e) => {
-          const operatorId = (btn as HTMLElement).dataset.operatorId;
-          const operatorEmail = (btn as HTMLElement).dataset.operatorEmail;
-          const operatorSectorsStr = (btn as HTMLElement).dataset.operatorSectors;
-
-          if (!operatorId || !operatorEmail) return;
-
-          let sectorIds: string[] = [];
-          try {
-            sectorIds = operatorSectorsStr ? JSON.parse(operatorSectorsStr) : [];
-          } catch {
-            // Fallback to empty array
-          }
-
-          showEditForm();
-
-          // Emit edit event with operator data
-          const operatorData = {
-            operatorId,
-            email: operatorEmail,
-            currentSectorIds: sectorIds,
-          };
-
-          window.dispatchEvent(
-            new CustomEvent("editOperator", {
-              detail: operatorData,
-            }),
-          );
-        });
-      });
-
       deactivateBtns.forEach((btn) => {
         btn.addEventListener("click", async (e) => {
           const operatorId = (btn as HTMLElement).dataset.operatorId;
@@ -341,13 +300,6 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
           }
         });
       });
-    };
-
-    // Wait for DOM to be fully loaded before attaching event listeners
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initializeForm);
-    } else {
-      initializeForm();
-    }
+    });
   </script>
 </AdminLayout>
