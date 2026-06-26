@@ -126,7 +126,7 @@ export async function POST(context: APIContext): Promise<Response> {
       email,
       password,
       email_confirm: true,
-      user_metadata: {
+      app_metadata: {
         role: "operator",
       },
     });
