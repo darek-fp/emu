@@ -53,22 +53,22 @@ export function generateTempPassword(): string {
  * Note: This is a simple implementation. For production, use a proper password hashing library.
  * 
  * @param password The password to hash
- * @returns Base64-encoded hash
+ * @returns Hex-encoded hash
  */
 export function hashPassword(password: string): string {
-  // Use TextEncoder to convert string to bytes, then create a simple hash
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "temp_salt_key");
-  
   // Create a simple hash by computing character codes (NOT cryptographically secure)
   // This is sufficient for comparing temp passwords since they're short-lived
+  const combined = password + "temp_salt_key";
   let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    hash = ((hash << 5) - hash) + data[i];
+  
+  for (let i = 0; i < combined.length; i++) {
+    const char = combined.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   
-  return Buffer.from(Math.abs(hash).toString()).toString("base64");
+  // Return as hex string
+  return Math.abs(hash).toString(16);
 }
 
 /**
