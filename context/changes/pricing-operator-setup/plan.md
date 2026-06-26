@@ -690,6 +690,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 - [x] 5.6g Simplify operator creation flow: admins create operators with passwords directly, operators log in immediately — 41a522e6
 - [x] 5.6h Use admin client with service role key for auth user creation — e0184679
 - [x] 5.6i Fix operator role in JWT: use app_metadata instead of user_metadata — dd97a9d3
+- [x] 5.6j Display operator assigned sectors on dashboard — 0f277d10
 
 #### Manual
 
