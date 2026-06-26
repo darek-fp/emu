@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface OperatorSectorEditorProps {
   sectors: { id: string; name: string }[];
@@ -18,7 +18,7 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
   const [successMessage, setSuccessMessage] = useState(false);
 
   // Listen for edit requests
-  React.useEffect(() => {
+  useEffect(() => {
     const handleEditOperator = (e: Event) => {
       const event = e as CustomEvent;
       const data = event.detail as OperatorData;
