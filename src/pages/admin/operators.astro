@@ -232,7 +232,6 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       const formContainer = document.getElementById("formContainer");
       const editFormContainer = document.getElementById("editFormContainer");
       const addNewBtn = document.getElementById("addNewBtn");
-      const cancelBtn = document.getElementById("formCancelBtn");
       const editBtns = document.querySelectorAll(".editBtn");
       const deactivateBtns = document.querySelectorAll(".deactivateBtn");
 
@@ -255,7 +254,15 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       };
 
       addNewBtn?.addEventListener("click", showForm);
-      cancelBtn?.addEventListener("click", hideForm);
+
+      // Listen for cancel event from forms
+      window.addEventListener("cancelForm", () => {
+        hideForm();
+      });
+
+      window.addEventListener("cancelEditForm", () => {
+        hideEditForm();
+      });
 
       // Listen for operator created event to close form and reload
       window.addEventListener("operatorCreated", () => {

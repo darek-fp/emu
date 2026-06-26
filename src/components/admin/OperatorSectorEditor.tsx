@@ -164,7 +164,13 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
         </button>
         <button
           type="button"
-          onClick={handleCancel}
+          onClick={() => {
+            setOperator(null);
+            setSelectedSectors([]);
+            setErrors({});
+            setSuccessMessage(false);
+            window.dispatchEvent(new CustomEvent("cancelEditForm"));
+          }}
           className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
         >
           Cancel
