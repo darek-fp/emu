@@ -1,27 +1,85 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import type { Database } from "@/database.types";
 
-const { user } = Astro.locals;
+const { user, role, operatorSectors } = Astro.locals;
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+let sectors: Database["public"]["Tables"]["sectors"]["Row"][] = [];
+let operatorData: Database["public"]["Tables"]["operators"]["Row"] | null = null;
+
+// Fetch operator details and sectors
+if (user && role === "operator" && supabase && operatorSectors && operatorSectors.length > 0) {
+  // Fetch the operator record
+  const { data: opData } = await supabase.from("operators").select("*").eq("user_id", user.id).single();
+  operatorData = opData;
+
+  // Fetch assigned sectors
+  const { data: sectorsData } = await supabase
+    .from("sectors")
+    .select("*")
+    .in("id", operatorSectors)
+    .order("created_at", { ascending: true });
+
+  sectors = sectorsData ?? [];
+}
 ---
 
 <Layout title="Dashboard">
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
-      <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-        Dashboard
-      </h1>
-      <p class="text-blue-100/80">
-        Welcome, <span class="font-semibold text-white">{user?.email}</span>
-      </p>
-      <p class="mt-2 text-sm text-blue-100/50">This page is only for authenticated users.</p>
-      <form method="POST" action="/api/auth/signout" class="mt-6">
-        <button
-          type="submit"
-          class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-        >
-          Sign out
-        </button>
-      </form>
+  <div class="bg-cosmic min-h-screen p-4">
+    <div class="mx-auto max-w-4xl space-y-8">
+      {/* Header */}
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+        <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+          Dashboard
+        </h1>
+        <p class="text-blue-100/80">
+          Welcome, <span class="font-semibold text-white">{user?.email}</span>
+        </p>
+        {role === "operator" && (
+          <p class="mt-2 text-sm text-blue-100/50">
+            You have access to {operatorSectors?.length ?? 0} sector{operatorSectors?.length === 1 ? "" : "s"}
+          </p>
+        )}
+      </div>
+
+      {/* Sectors */}
+      {operatorSectors && operatorSectors.length > 0 ? (
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+          <h2 class="mb-6 text-2xl font-semibold text-white">Assigned Sectors</h2>
+          {sectors.length > 0 ? (
+            <div class="grid gap-4 sm:grid-cols-2">
+              {sectors.map((sector) => (
+                <div class="rounded-lg border border-white/20 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                  <h3 class="font-semibold text-white">{sector.name}</h3>
+                  <p class="mt-2 text-sm text-blue-100/70">
+                    Available spots: <span class="font-mono text-blue-100">{sector.spot_count}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p class="text-blue-100/70">No sector details available</p>
+          )}
+        </div>
+      ) : (
+        <div class="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-8">
+          <p class="text-yellow-200">You are not assigned to any sectors yet. Contact an administrator.</p>
+        </div>
+      )}
+
+      {/* Sign out */}
+      <div class="flex justify-center">
+        <form method="POST" action="/api/auth/signout">
+          <button
+            type="submit"
+            class="rounded-lg border border-white/20 bg-white/10 px-6 py-2 text-sm transition-colors hover:bg-white/20"
+          >
+            Sign out
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 </Layout>
