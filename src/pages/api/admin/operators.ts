@@ -110,42 +110,37 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Create operators table record (auth user will be created via signup flow)
-    const { data: operatorData, error: operatorError } = await supabase
-      .from("operators")
-      .insert([
-        {
-          email,
-          deactivated_at: null,
-        },
-      ])
-      .select("id")
+    // Create operators table record using admin function (bypasses RLS)
+    const { data: operatorIdData, error: operatorError } = await supabase
+      .rpc("create_operator_by_admin", { p_email: email })
       .single();
 
-    if (operatorError || !operatorData?.id) {
+    if (operatorError || !operatorIdData) {
       const errorMsg = operatorError instanceof Error ? operatorError.message : String(operatorError);
-      console.error("[POST /api/admin/operators] Failed to create operator record:", errorMsg);
+      console.error("[POST /api/admin/operators] Failed to create operator record via RPC:", errorMsg);
       return new Response(JSON.stringify({ success: false, error: `Failed to create operator record: ${errorMsg}` }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    const operatorId = operatorData.id;
-    console.log("[POST /api/admin/operators] Operator created:", { operatorId, email });
+    const operatorId = operatorIdData as string;
+    console.log("[POST /api/admin/operators] Operator created via RPC:", { operatorId, email });
 
-    // Insert sector assignments
-    const assignmentData = sectorIds.map((sectorId) => ({
-      operator_id: operatorId,
-      sector_id: sectorId,
-    }));
-
-    const { error: assignmentError } = await supabase.from("operator_sector_assignments").insert(assignmentData);
+    // Assign sectors using admin function (bypasses RLS)
+    const { error: assignmentError } = await supabase.rpc("assign_operator_sectors", {
+      p_operator_id: operatorId,
+      p_sector_ids: sectorIds,
+    });
 
     if (assignmentError) {
-      // Clean up if sector assignment fails
-      console.error("[POST /api/admin/operators] Sector assignment failed, rolling back:", assignmentError);
-      await supabase.from("operators").delete().eq("id", operatorId);
+      console.error("[POST /api/admin/operators] Sector assignment failed:", assignmentError);
+      // Try to clean up the operator record
+      try {
+        await supabase.from("operators").delete().eq("id", operatorId);
+      } catch (cleanupErr) {
+        console.error("[POST /api/admin/operators] Cleanup failed:", cleanupErr);
+      }
       const errorMsg = assignmentError instanceof Error ? assignmentError.message : String(assignmentError);
       return new Response(JSON.stringify({ success: false, error: `Failed to assign sectors: ${errorMsg}` }), {
         status: 500,
