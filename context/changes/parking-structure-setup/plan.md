@@ -7,12 +7,14 @@ Admin can define and update parking lot sectors with spot counts. For MVP, the s
 ## Current State Analysis
 
 **What exists:**
+
 - Supabase `sectors` table with RLS policies enforcing admin-only INSERT/UPDATE/DELETE (schema in `supabase/migrations/20260605120001_create_sectors.sql`)
 - Supabase `reservations` table tracking sector_id, customer data, arrival/departure times, and status (schema in `supabase/migrations/20260605120003_create_reservations.sql`)
 - Middleware role checking in `src/middleware.ts` enforcing `/admin/*` route access to admin users only
 - No admin UI exists yet; no sector management endpoints
 
 **What's missing:**
+
 - Admin configuration page at `/admin/structure`
 - React form component for sector CRUD (add, update, delete sectors)
 - API endpoints for sector operations: POST/PUT/DELETE `/api/admin/sectors`
@@ -20,6 +22,7 @@ Admin can define and update parking lot sectors with spot counts. For MVP, the s
 - Operator read-only view of sectors (for S-03: reservation creation needs to display available sectors and spot counts)
 
 **Constraints & patterns:**
+
 - Role enforcement: middleware checks `role === "admin"` for `/admin/*` paths; RLS policies automatically enforce via `current_user_role() = 'admin'` on the database side
 - API pattern: POST/PUT requests use form data; responses redirect on error or return JSON on success (no Zod validation yet — client-side validation in React is the pattern)
 - UI pattern: Astro pages with React islands (`client:load`); FormField + SubmitButton components for forms; shadcn/ui Button, Dialog, AlertDialog for UI
@@ -28,6 +31,7 @@ Admin can define and update parking lot sectors with spot counts. For MVP, the s
 ## Desired End State
 
 **User experience:**
+
 1. Admin navigates to `/admin/structure` and sees the current parking structure (initially empty or a default single-lot sector)
 2. Admin clicks "Edit" to enter edit mode; form fields become editable for sector names and spot counts
 3. Admin can add new sectors by entering a name and spot count; remove sectors; or update spot counts
@@ -36,6 +40,7 @@ Admin can define and update parking lot sectors with spot counts. For MVP, the s
 6. On success, the page refreshes to show the updated structure; on error, a toast or inline error message displays
 
 **Verification:**
+
 - Admin can create a sector with a name and spot count
 - Admin can update a sector's spot count
 - Admin cannot delete a sector (per decision: reduce spot counts only — no sector deletion)
@@ -54,12 +59,14 @@ Admin can define and update parking lot sectors with spot counts. For MVP, the s
 ## Implementation Approach
 
 **Atomicity and safety:**
+
 - All structural changes are validated at the API layer before any database writes occur
 - Conflict detection: query reservations with `status IN ('confirmed', 'arrived')` (not 'departed' or 'canceled') to determine active bookings per sector
 - If reducing a sector's spot_count below the peak concurrent reservation count in that sector during the update window, reject with a clear reason
 - Database writes are wrapped in a single transaction to ensure atomicity; if any insert/update fails, the entire change batch rolls back
 
 **Validation order:**
+
 1. Authenticate: check role === 'admin' (middleware + RLS)
 2. Parse request: extract sector operations (add, update, delete)
 3. Query existing structure: fetch current sectors and pricing tier info
@@ -68,6 +75,7 @@ Admin can define and update parking lot sectors with spot counts. For MVP, the s
 6. Execute atomically: insert/update sectors in a single transaction; return success or detailed error
 
 **Operator visibility:**
+
 - Operators can query sectors via GET `/api/sectors` (read-only, RLS enforces SELECT permission)
 - Operators use sector list + spot_count to check availability in S-03 (reservation creation)
 - No operator access to admin endpoints
@@ -156,7 +164,8 @@ Implement API endpoints for sector operations: POST to create sectors, PUT to up
 
 **Intent**: Handle sector creation and updates in a single atomic operation. Request body contains a batch of operations: `{ operations: [{ type: 'add'|'update', name, spotCount, id? }, ...] }`. Validates each operation, detects conflicts with active reservations, and either applies all changes or rejects the entire batch.
 
-**Contract**: 
+**Contract**:
+
 - POST endpoint; middleware ensures `role === 'admin'`
 - Request body (form data or JSON): `{ operations: Array<{ type: 'add'|'update', name?: string, spotCount?: number, id?: string }> }`
 - Validation: each operation is validated before any writes. On validation failure, returns error response with details of which operation failed and why.
@@ -169,7 +178,8 @@ Implement API endpoints for sector operations: POST to create sectors, PUT to up
 
 **Intent**: Encapsulate conflict detection and atomic sector operations. Exported functions: `detectConflicts(sectorId: string): Promise<ConflictInfo>` and `applyStructuralChanges(operations: Operation[]): Promise<Sector[]>`. The conflict detection queries reservations with `status IN ('confirmed', 'arrived')` to determine active bookings per sector.
 
-**Contract**: 
+**Contract**:
+
 - `detectConflicts(sectorId)` returns `{ hasConflict: boolean, activeReservations: number }`. Queries reservations where `sector_id = sectorId AND status IN ('confirmed', 'arrived') AND departure_at > now()`.
 - `applyStructuralChanges(operations)` validates all operations, detects conflicts, and either applies all changes atomically or throws a descriptive error. Uses Supabase client transactions if available, or raw SQL BEGIN/COMMIT for atomicity.
 
@@ -179,7 +189,8 @@ Implement API endpoints for sector operations: POST to create sectors, PUT to up
 
 **Intent**: Fetch current sector list with spot counts and (optional) count of active reservations per sector. Used by admin page to refresh after changes.
 
-**Contract**: 
+**Contract**:
+
 - GET endpoint; middleware ensures authenticated access (admin or operator for `/api/sectors`; admin-only for `/api/admin/sectors`)
 - Response: `{ sectors: Sector[] }` or with optional `{ sectors: Array<Sector & { activeReservations: number }> }` for admin view
 - No query params; returns all sectors
@@ -228,7 +239,8 @@ Implement the core conflict detection logic. When an admin attempts to reduce a 
 
 **Intent**: Query active reservations in a sector and detect the peak concurrent occupancy during any time window. This is used to determine if reducing spot_count would create an overbooking situation.
 
-**Contract**: 
+**Contract**:
+
 - Function: `getPeakConcurrentReservations(sectorId: string, timeRange?: { start: Date, end: Date }): Promise<number>`
 - Queries reservations where `sector_id = sectorId AND status IN ('confirmed', 'arrived')`
 - Returns the maximum number of overlapping reservations at any point in time
@@ -248,7 +260,8 @@ Implement the core conflict detection logic. When an admin attempts to reduce a 
 
 **Intent**: When conflicts are detected, return a clear error response that includes: which sectors have conflicts, how many active reservations exist per sector, and the proposed new spot count.
 
-**Contract**: Response body on conflict: 
+**Contract**: Response body on conflict:
+
 ```json
 {
   "success": false,
@@ -300,7 +313,8 @@ Operators need to see available sectors and spot counts when creating reservatio
 
 **Intent**: Public read endpoint (for authenticated operators and admins) to fetch the current parking structure. Returns all sectors with their spot counts (and optionally, current occupancy per sector).
 
-**Contract**: 
+**Contract**:
+
 - GET endpoint; middleware ensures authenticated access (operator or admin)
 - Response: `{ sectors: Array<{ id: string, name: string, spotCount: number, currentOccupancy?: number }> }`
 - No admin-only restrictions; operators use this to display available sectors in the reservation form (S-03)

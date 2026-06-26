@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Core Domain Schema Implementation Plan
 
 - **Plan**: context/changes/core-domain-schema/plan.md
@@ -9,13 +10,13 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | WARNING |
-| Lean Execution | PASS |
+| Dimension             | Verdict |
+| --------------------- | ------- |
+| End-State Alignment   | WARNING |
+| Lean Execution        | PASS    |
 | Architectural Fitness | WARNING |
-| Blind Spots | FAIL |
-| Plan Completeness | PASS |
+| Blind Spots           | FAIL    |
+| Plan Completeness     | PASS    |
 
 ## Grounding
 
@@ -67,14 +68,14 @@
   ```
   BEGIN;
   SELECT spot_count FROM public.sectors WHERE id = $sector_id FOR UPDATE;
-  SELECT COUNT(*) FROM public.reservations 
-    WHERE sector_id = $sector_id AND status != 'canceled' 
+  SELECT COUNT(*) FROM public.reservations
+    WHERE sector_id = $sector_id AND status != 'canceled'
     AND (arrival_at, departure_at) OVERLAPS (requested_arrival, requested_departure);
-  IF count < spot_count THEN 
-    INSERT INTO reservations (...) RETURNING id; 
-    COMMIT; 
-  ELSE 
-    ROLLBACK; 
+  IF count < spot_count THEN
+    INSERT INTO reservations (...) RETURNING id;
+    COMMIT;
+  ELSE
+    ROLLBACK;
   END IF;
   ```
   Document that overlaps() enforces atomicity and that lock contention under high concurrency is a known tradeoff (not mitigated in F-02, addressed in NFR testing).

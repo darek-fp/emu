@@ -28,12 +28,15 @@ A purpose-built web app replaces the notepad with a single source of truth: curr
 ## Success Criteria
 
 ### Primary
+
 - A parking manager can configure a parking structure (sectors + spot counts), check availability for a requested date range, create a reservation with customer details and arrival/departure time window, and then mark that reservation as arrived, departed, and paid — without touching a notepad.
 
 ### Secondary
+
 - The system surfaces traffic surge warnings: upcoming time windows where the volume of declared arrivals and departures is high enough to suggest more than one operator on duty.
 
 ### Guardrails
+
 - Overbooking must be impossible — availability must be enforced at reservation creation time; double-booking a spot for overlapping periods must be prevented by the system.
 - Data must not be lost — confirmed reservations, payments, and configuration must persist reliably.
 - An operator must always be able to cancel a reservation (no workflow lock-out).
@@ -47,6 +50,7 @@ A purpose-built web app replaces the notepad with a single source of truth: curr
 - **Then** a reservation is created with the calculated price, the spot is marked as unavailable for that window, and the reservation appears in the active reservations list
 
 #### Acceptance Criteria
+
 - System must reject the submission if no spot is available for the requested window (overbooking prevention)
 - Price is automatically calculated and displayed before the operator confirms the booking
 - Reservation appears immediately in the reservations list upon creation
@@ -56,6 +60,7 @@ A purpose-built web app replaces the notepad with a single source of truth: curr
 ### Parking Structure
 
 - FR-001: Admin can define the parking structure — either a single undivided lot or multiple named sectors, each with a configured spot count. Priority: must-have
+
   > Socrates: No counter-argument; stands as written.
 
 - FR-002: Admin can update the parking structure configuration (add/remove sectors, change spot counts). Priority: must-have
@@ -74,15 +79,19 @@ A purpose-built web app replaces the notepad with a single source of truth: curr
 ### Reservations
 
 - FR-005: Operator can check available spots for a requested date range. Priority: must-have
+
   > Socrates: Counter-argument considered: "a simple occupancy count would be simpler." Resolution: kept — real-time availability check for a date range is the core capability, not an enhancement.
 
 - FR-006: Operator can create a reservation with: customer name, license plate, arrival date+time, departure date+time. Priority: must-have
+
   > Socrates: Counter-argument considered: "collecting too many fields slows operators." Resolution: scoped down — customer name + license plate only for MVP; full vehicle details in v2.
 
 - FR-007: System automatically calculates the total price for a reservation based on the declared arrival/departure window and the applicable pricing tier. Operator may manually override the calculated price (override is flagged). Priority: must-have
+
   > Socrates: Counter-argument considered: "automatic pricing leaves no room for exceptions." Resolution: modified — operator can override with a warning flag; this handles edge cases without undermining the automation.
 
 - FR-008: Operator can view all reservations (past, current, and upcoming) in a reservation list. Priority: must-have
+
   > Socrates: No counter-argument; operational dashboard is essential.
 
 - FR-009: Operator can cancel a reservation. Cancellations are logged with the cancelling user's identity and timestamp. Priority: must-have
@@ -91,9 +100,11 @@ A purpose-built web app replaces the notepad with a single source of truth: curr
 ### Arrival / Departure / Payment
 
 - FR-010: Operator can confirm vehicle arrival for a reservation in a single action (no multi-step form). Priority: must-have
+
   > Socrates: No counter-argument; single-action UX constraint added — confirmation must be a single click, not buried in a form.
 
 - FR-011: Operator can confirm vehicle departure for a reservation in a single action. Priority: must-have
+
   > Socrates: Same as FR-010; single-action UX constraint.
 
 - FR-012: Operator can confirm payment for a reservation in a single action. Priority: must-have
@@ -102,6 +113,7 @@ A purpose-built web app replaces the notepad with a single source of truth: curr
 ### System Rules
 
 - FR-013: System prevents overbooking — rejects reservation creation if any existing reservation's arrival/departure window overlaps (at the hour level, not just calendar-day level) with the requested window for the same spot. Priority: must-have
+
   > Socrates: Counter-argument considered: "day-level overlap check might be sufficient." Resolution: strengthened — time-of-day overlap must be checked; a spot can be vacated at 10am and re-booked from noon the same day.
 
 - FR-014: System displays a traffic surge warning when the volume of declared arrivals and/or departures in a given time window is notably high. Priority: nice-to-have

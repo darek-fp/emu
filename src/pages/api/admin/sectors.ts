@@ -149,7 +149,7 @@ export async function POST(context: APIContext) {
           error: "Cannot apply changes: conflicts detected in affected sectors",
           conflicts,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -173,15 +173,15 @@ export async function POST(context: APIContext) {
                   error: "Conflict detected (state changed during request): " + conflict.reason,
                   conflicts: [conflict],
                 }),
-                { status: 400, headers: { "Content-Type": "application/json" } }
+                { status: 400, headers: { "Content-Type": "application/json" } },
               );
             }
           }
         }
       }
-      
+
       const writeErrors: string[] = [];
-      
+
       for (const op of operations) {
         if (op.type === "add") {
           const { error } = await supabase
@@ -206,7 +206,7 @@ export async function POST(context: APIContext) {
           }
         }
       }
-      
+
       // If any writes failed, return error (stop processing)
       if (writeErrors.length > 0) {
         return new Response(
@@ -215,7 +215,7 @@ export async function POST(context: APIContext) {
             error: "One or more sector updates failed. Partial updates may have persisted.",
             details: writeErrors,
           }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: { "Content-Type": "application/json" } },
         );
       }
     } catch (err) {

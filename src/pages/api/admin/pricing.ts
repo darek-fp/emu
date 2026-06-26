@@ -99,7 +99,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Deactivate any existing active tier for this sector
     const now = new Date().toISOString();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const { error: deactivateError } = await supabase
       .from("pricing_tiers")
       .update({ ended_at: now })

@@ -1,21 +1,22 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Auth RBAC Scaffold
 
 - **Plan**: `context/changes/auth-rbac-scaffold/plan.md`
 - **Mode**: Deep
 - **Date**: 2026-06-04
 - **Verdict**: SOUND (post-triage)
-- **Findings**: 0 critical  3 warnings  1 observation
+- **Findings**: 0 critical 3 warnings 1 observation
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | WARNING → PASS (fixed) |
-| Lean Execution | PASS |
-| Architectural Fitness | PASS |
-| Blind Spots | WARNING → PASS (fixed) |
-| Plan Completeness | WARNING → PASS (fixed) |
+| Dimension             | Verdict                |
+| --------------------- | ---------------------- |
+| End-State Alignment   | WARNING → PASS (fixed) |
+| Lean Execution        | PASS                   |
+| Architectural Fitness | PASS                   |
+| Blind Spots           | WARNING → PASS (fixed) |
+| Plan Completeness     | WARNING → PASS (fixed) |
 
 ## Grounding
 

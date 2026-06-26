@@ -27,24 +27,24 @@ Parking managers at small-to-medium lots today track availability and reservatio
 
 ## At a glance
 
-| ID | Change ID | Outcome (user can …) | Prerequisites | PRD refs | Status |
-|---|---|---|---|---|---|
-| F-01 | `auth-rbac-scaffold` | (foundation) Admin and Operator roles wired into auth; role-scoped middleware protecting all routes | — | Access Control section | ready |
-| F-02 | `core-domain-schema` | (foundation) Supabase migrations landed for sectors, spots, pricing tiers, reservations, and cancellation audit log | — | FR-001, FR-003, FR-006, FR-009 | ready |
-| S-01 | `parking-structure-setup` | Admin can define sectors and spot counts, and update the structure with conflict warnings for active reservations | F-01, F-02 | FR-001, FR-002 | proposed |
-| S-02 | `pricing-and-operator-management` | Admin can configure pricing tiers (base rate, discount schedule, floor) and create/deactivate Operator accounts | F-01, F-02 | FR-003, FR-004 | proposed |
-| S-03 | `reservation-creation-core` | Operator can check spot availability for a date range, create a reservation with auto-calculated price (override flagged), and see it immediately in the reservations list; submission rejected if no spot is available | F-01, F-02, S-01, S-02 | FR-005, FR-006, FR-007, FR-008, FR-013, US-01 | proposed |
-| S-04 | `reservation-cancellation` | Operator can cancel a reservation; cancellation is logged with the operator's identity and timestamp | S-03 | FR-009 | proposed |
-| S-05 | `reservation-lifecycle-confirmations` | Operator can confirm vehicle arrival, departure, and payment for a reservation, each in a single action | S-03 | FR-010, FR-011, FR-012 | proposed |
+| ID   | Change ID                             | Outcome (user can …)                                                                                                                                                                                                    | Prerequisites          | PRD refs                                      | Status   |
+| ---- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | --------------------------------------------- | -------- |
+| F-01 | `auth-rbac-scaffold`                  | (foundation) Admin and Operator roles wired into auth; role-scoped middleware protecting all routes                                                                                                                     | —                      | Access Control section                        | ready    |
+| F-02 | `core-domain-schema`                  | (foundation) Supabase migrations landed for sectors, spots, pricing tiers, reservations, and cancellation audit log                                                                                                     | —                      | FR-001, FR-003, FR-006, FR-009                | ready    |
+| S-01 | `parking-structure-setup`             | Admin can define sectors and spot counts, and update the structure with conflict warnings for active reservations                                                                                                       | F-01, F-02             | FR-001, FR-002                                | proposed |
+| S-02 | `pricing-and-operator-management`     | Admin can configure pricing tiers (base rate, discount schedule, floor) and create/deactivate Operator accounts                                                                                                         | F-01, F-02             | FR-003, FR-004                                | proposed |
+| S-03 | `reservation-creation-core`           | Operator can check spot availability for a date range, create a reservation with auto-calculated price (override flagged), and see it immediately in the reservations list; submission rejected if no spot is available | F-01, F-02, S-01, S-02 | FR-005, FR-006, FR-007, FR-008, FR-013, US-01 | proposed |
+| S-04 | `reservation-cancellation`            | Operator can cancel a reservation; cancellation is logged with the operator's identity and timestamp                                                                                                                    | S-03                   | FR-009                                        | proposed |
+| S-05 | `reservation-lifecycle-confirmations` | Operator can confirm vehicle arrival, departure, and payment for a reservation, each in a single action                                                                                                                 | S-03                   | FR-010, FR-011, FR-012                        | proposed |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme | Chain | Note |
-|---|---|---|---|
-| A | Setup prerequisites | `F-01` / `F-02` (parallel) | Both are immediately `ready`; running them in parallel is the fastest path through the bottleneck. F-01 wires security; F-02 lays the data contracts. Everything in Stream B waits for both. |
-| B | Operator workflow | `S-01` / `S-02` → `S-03` → `S-04` / `S-05` | Requires both Stream A foundations. S-01 and S-02 run in parallel. North star `S-03` is the quality gate in this chain. `S-04` and `S-05` run in parallel after the north star lands. |
+| Stream | Theme               | Chain                                      | Note                                                                                                                                                                                         |
+| ------ | ------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Setup prerequisites | `F-01` / `F-02` (parallel)                 | Both are immediately `ready`; running them in parallel is the fastest path through the bottleneck. F-01 wires security; F-02 lays the data contracts. Everything in Stream B waits for both. |
+| B      | Operator workflow   | `S-01` / `S-02` → `S-03` → `S-04` / `S-05` | Requires both Stream A foundations. S-01 and S-02 run in parallel. North star `S-03` is the quality gate in this chain. `S-04` and `S-05` run in parallel after the north star lands.        |
 
 ## Baseline
 
@@ -114,7 +114,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** The discount schedule must be fully specified in this slice — the shape of the pricing tier directly determines how the pricing engine in S-03 computes totals. A mismatch between the tier data model (F-02) and the pricing logic (S-03) is the most likely source of the "rounding errors or off-by-one day miscounts" NFR violation. Clarify the discount model here and document it clearly for S-03's implementer.
 - **Status:** proposed
 
-### S-03: Reservation creation — availability check, pricing, and list view *(north star)*
+### S-03: Reservation creation — availability check, pricing, and list view _(north star)_
 
 - **Outcome:** Operator can check available spots for a requested date range, create a reservation with customer name, license plate, arrival date+time, and departure date+time; system automatically calculates and displays the total price before confirmation; Operator may override the calculated price (override is flagged in the record); system rejects submission if no spot is available for the requested window (overbooking prevention at the hour level); new reservation appears immediately in the reservations list.
 - **Change ID:** `reservation-creation-core`
@@ -154,15 +154,15 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID | Suggested issue title | Ready for `/10x-plan` | Notes |
-|---|---|---|---|---|
-| F-01 | `auth-rbac-scaffold` | Wire Admin/Operator RBAC into Supabase auth | yes | Run `/10x-plan auth-rbac-scaffold` |
-| F-02 | `core-domain-schema` | Create core domain schema migrations (sectors, spots, pricing tiers, reservations, audit log) | yes | Run `/10x-plan core-domain-schema` |
-| S-01 | `parking-structure-setup` | Admin: define and update parking structure with conflict warnings | no | Requires F-01 + F-02 done first |
-| S-02 | `pricing-and-operator-management` | Admin: configure pricing tiers + manage Operator accounts | no | Requires F-01 + F-02 done first |
-| S-03 | `reservation-creation-core` | Operator: check availability + create priced reservation (north star) | no | Requires S-01 + S-02 done; plan the race-condition and GDPR unknowns as part of `/10x-plan` |
-| S-04 | `reservation-cancellation` | Operator: cancel reservation with audit trail | no | Requires S-03 done |
-| S-05 | `reservation-lifecycle-confirmations` | Operator: confirm arrival, departure, and payment (single-action each) | no | Requires S-03 done |
+| Roadmap ID | Change ID                             | Suggested issue title                                                                         | Ready for `/10x-plan` | Notes                                                                                       |
+| ---------- | ------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------- |
+| F-01       | `auth-rbac-scaffold`                  | Wire Admin/Operator RBAC into Supabase auth                                                   | yes                   | Run `/10x-plan auth-rbac-scaffold`                                                          |
+| F-02       | `core-domain-schema`                  | Create core domain schema migrations (sectors, spots, pricing tiers, reservations, audit log) | yes                   | Run `/10x-plan core-domain-schema`                                                          |
+| S-01       | `parking-structure-setup`             | Admin: define and update parking structure with conflict warnings                             | no                    | Requires F-01 + F-02 done first                                                             |
+| S-02       | `pricing-and-operator-management`     | Admin: configure pricing tiers + manage Operator accounts                                     | no                    | Requires F-01 + F-02 done first                                                             |
+| S-03       | `reservation-creation-core`           | Operator: check availability + create priced reservation (north star)                         | no                    | Requires S-01 + S-02 done; plan the race-condition and GDPR unknowns as part of `/10x-plan` |
+| S-04       | `reservation-cancellation`            | Operator: cancel reservation with audit trail                                                 | no                    | Requires S-03 done                                                                          |
+| S-05       | `reservation-lifecycle-confirmations` | Operator: confirm arrival, departure, and payment (single-action each)                        | no                    | Requires S-03 done                                                                          |
 
 ## Open Roadmap Questions
 

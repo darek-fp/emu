@@ -16,18 +16,19 @@ Every request resolves `context.locals.role` as `"admin" | "operator" | null`. `
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-|---|---|---|---|
-| Role storage mechanism | `app_metadata` JWT claim | Server-assigned, user-read-only, zero extra DB query per request — standard Supabase pattern for system roles | Plan |
-| Route protection pattern | Path-prefix (`/admin/*`, `/dashboard/*`) | Consistent with existing `PROTECTED_ROUTES` pattern; self-documenting; scales by convention without per-route annotation | Plan |
-| TypeScript exposure | Separate `context.locals.role: UserRole \| null` field | Clean separation; pages and APIs check one field without digging into the JWT payload; type-safe with string union | Plan |
-| Wrong-role redirect | Redirect to role's own home | Better UX than a sign-in loop; Admin has full access per PRD spec | Plan |
-| Self-registration | Disable signup route and page | Enforces PRD "no self-registration" immediately; prevents roleless accounts accumulating | Plan |
-| Admin provisioning | `supabase/seed.sql` | Reproducible for local dev and CI; explicit and auditable; credentials kept out of source control | Plan |
+| Decision                 | Choice                                                 | Why (1 sentence)                                                                                                         | Source |
+| ------------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------ |
+| Role storage mechanism   | `app_metadata` JWT claim                               | Server-assigned, user-read-only, zero extra DB query per request — standard Supabase pattern for system roles            | Plan   |
+| Route protection pattern | Path-prefix (`/admin/*`, `/dashboard/*`)               | Consistent with existing `PROTECTED_ROUTES` pattern; self-documenting; scales by convention without per-route annotation | Plan   |
+| TypeScript exposure      | Separate `context.locals.role: UserRole \| null` field | Clean separation; pages and APIs check one field without digging into the JWT payload; type-safe with string union       | Plan   |
+| Wrong-role redirect      | Redirect to role's own home                            | Better UX than a sign-in loop; Admin has full access per PRD spec                                                        | Plan   |
+| Self-registration        | Disable signup route and page                          | Enforces PRD "no self-registration" immediately; prevents roleless accounts accumulating                                 | Plan   |
+| Admin provisioning       | `supabase/seed.sql`                                    | Reproducible for local dev and CI; explicit and auditable; credentials kept out of source control                        | Plan   |
 
 ## Scope
 
 **In scope:**
+
 - `UserRole` type in `src/types.ts`
 - `App.Locals.role` in `src/env.d.ts`
 - Middleware rewrite with prefix-based RBAC
@@ -35,6 +36,7 @@ Every request resolves `context.locals.role` as `"admin" | "operator" | null`. `
 - `supabase/seed.sql` for initial local dev Admin
 
 **Out of scope:**
+
 - Admin or Operator UI pages (S-01 through S-05)
 - Operator account provisioning API (S-02)
 - Domain schema migrations (F-02)
@@ -47,11 +49,11 @@ Role is embedded in the Supabase JWT `access_token` under `app_metadata.role`. T
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-|---|---|---|
-| 1. RBAC types & middleware | `UserRole` type, `locals.role`, rewritten middleware with prefix-based enforcement | Prefix matching must guard against false positives (e.g. `/administrator`) |
-| 2. Disable self-registration | Signup route → redirect; signup page → redirect; signin removes signup link | Minimal risk — existing pages are just redirected |
-| 3. Initial admin seed | `supabase/seed.sql` with hashed dev-only credentials | Seed credentials must never ship to production |
+| Phase                        | What it delivers                                                                   | Key risk                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 1. RBAC types & middleware   | `UserRole` type, `locals.role`, rewritten middleware with prefix-based enforcement | Prefix matching must guard against false positives (e.g. `/administrator`) |
+| 2. Disable self-registration | Signup route → redirect; signup page → redirect; signin removes signup link        | Minimal risk — existing pages are just redirected                          |
+| 3. Initial admin seed        | `supabase/seed.sql` with hashed dev-only credentials                               | Seed credentials must never ship to production                             |
 
 **Prerequisites:** Local Supabase running (`npx supabase start`) for Phase 3 verification; no code prerequisites — all upstream auth wiring is already in place.
 **Estimated effort:** ~1 session across 3 phases

@@ -99,6 +99,7 @@ $$;
 **Contract**: `sectors(id UUID PK DEFAULT gen_random_uuid(), name TEXT NOT NULL UNIQUE, spot_count INTEGER NOT NULL CHECK (spot_count > 0), created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`.
 
 RLS policies:
+
 - `SELECT` — `public.current_user_role() IN ('admin', 'operator')`
 - `INSERT`, `UPDATE`, `DELETE` — `public.current_user_role() = 'admin'`
 
@@ -117,6 +118,7 @@ Partial unique index: `CREATE UNIQUE INDEX one_active_tier ON public.pricing_tie
 `discount_steps` shape (for reference only — validated by the application, not the DB): `[{"from_day": 4, "rate_multiplier": 0.90}, ...]` where `from_day` is an integer and `rate_multiplier` is a decimal ≤ 1.
 
 RLS policies:
+
 - `SELECT` — `public.current_user_role() IN ('admin', 'operator')`
 - `INSERT`, `UPDATE`, `DELETE` — `public.current_user_role() = 'admin'`
 
@@ -180,6 +182,7 @@ CREATE TABLE public.reservations (
 ```
 
 RLS policies:
+
 - `SELECT` — `public.current_user_role() IN ('admin', 'operator')`
 - `INSERT` — `public.current_user_role() IN ('admin', 'operator')`
 - `UPDATE` — `public.current_user_role() IN ('admin', 'operator')`
@@ -223,6 +226,7 @@ Create the `cancellation_log` table (append-only audit log; no updated_at), enab
 **Contract**: `cancellation_log(id UUID PK DEFAULT gen_random_uuid(), reservation_id UUID NOT NULL REFERENCES public.reservations(id), canceled_by UUID NOT NULL REFERENCES auth.users(id), canceled_at TIMESTAMPTZ NOT NULL DEFAULT now())`.
 
 RLS policies:
+
 - `SELECT` — `public.current_user_role() IN ('admin', 'operator')`
 - `INSERT` — `public.current_user_role() IN ('admin', 'operator')`
 - No `UPDATE` or `DELETE` policies — records are immutable

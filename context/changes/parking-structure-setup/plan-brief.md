@@ -17,25 +17,27 @@ Admin can navigate to `/admin/structure`, see the current parking structure (sec
 
 ## Key Decisions Made
 
-| Decision                            | Choice                                    | Why (1 sentence)                                                                      | Source |
-| ----------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------- | ------ |
-| Scope (sector deletion?)            | Reduce spot counts only                   | Prevents accidental loss of lot configuration; deletions deferred to v2.               | Plan   |
-| Conflict handling                   | Block update if ANY active reservation    | Prevents overbooking; simple clear rule.                                              | Plan   |
-| Multi-sector batch behavior         | Atomic: all changes or none                | Prevents partial configuration corruption; matches DB transaction semantics.          | Plan   |
-| UX pattern (admin interface)        | Dedicated page with edit mode toggle      | Keeps admin workspace organized; matches existing Astro + React island pattern.       | Plan   |
-| Operator visibility                 | Read-only sector list API endpoint        | Operators need structure to check availability; admin-controlled, not editable.       | Plan   |
-| MVP sector model                    | Single-lot mode (no multi-sector division) | Simplifies MVP; sectors table scaffolded but not exposed; full division in v2.        | Plan   |
+| Decision                     | Choice                                     | Why (1 sentence)                                                                | Source |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------- | ------ |
+| Scope (sector deletion?)     | Reduce spot counts only                    | Prevents accidental loss of lot configuration; deletions deferred to v2.        | Plan   |
+| Conflict handling            | Block update if ANY active reservation     | Prevents overbooking; simple clear rule.                                        | Plan   |
+| Multi-sector batch behavior  | Atomic: all changes or none                | Prevents partial configuration corruption; matches DB transaction semantics.    | Plan   |
+| UX pattern (admin interface) | Dedicated page with edit mode toggle       | Keeps admin workspace organized; matches existing Astro + React island pattern. | Plan   |
+| Operator visibility          | Read-only sector list API endpoint         | Operators need structure to check availability; admin-controlled, not editable. | Plan   |
+| MVP sector model             | Single-lot mode (no multi-sector division) | Simplifies MVP; sectors table scaffolded but not exposed; full division in v2.  | Plan   |
 
 ## Scope
 
-**In scope:** 
+**In scope:**
+
 - Admin UI for viewing and editing sectors (name, spot count)
 - Sector creation (add) and update operations
 - Conflict detection: reject updates if active reservations exist in affected sectors
 - Atomic batch validation and application
 - Operator read-only API access to view sectors
 
-**Out of scope:** 
+**Out of scope:**
+
 - Sector deletion (reduce spot counts only)
 - Multi-lot support (single lot for MVP)
 - Automatic spot assignment or optimization by stay duration
@@ -53,12 +55,12 @@ Admin can navigate to `/admin/structure`, see the current parking structure (sec
 
 ## Phases at a Glance
 
-| Phase | What it delivers                          | Key risk                                      |
-| ----- | ----------------------------------------- | --------------------------------------------- |
-| 1     | Admin page scaffold + UI layout           | Form/page structure must match API contract   |
-| 2     | Sector CRUD endpoints + atomic validation | Batch atomicity and race conditions           |
-| 3     | Conflict detection + reservation queries  | Peak concurrent calculation accuracy          |
-| 4     | Operator read-only sector endpoint        | Data consistency with admin writes            |
+| Phase | What it delivers                          | Key risk                                    |
+| ----- | ----------------------------------------- | ------------------------------------------- |
+| 1     | Admin page scaffold + UI layout           | Form/page structure must match API contract |
+| 2     | Sector CRUD endpoints + atomic validation | Batch atomicity and race conditions         |
+| 3     | Conflict detection + reservation queries  | Peak concurrent calculation accuracy        |
+| 4     | Operator read-only sector endpoint        | Data consistency with admin writes          |
 
 **Prerequisites:** F-01 (Auth/RBAC) and F-02 (Core Domain Schema) must be completed first.
 **Estimated effort:** ~2-3 sessions across 4 phases, assuming ~1-2 hours per session.

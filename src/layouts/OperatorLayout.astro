@@ -1,0 +1,35 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<Layout title={title}>
+  <div class="bg-cosmic min-h-screen flex flex-col">
+    {/* Navigation Bar */}
+    <nav class="border-b border-white/10 bg-white/5 backdrop-blur-xl">
+      <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-white">{title}</h2>
+        <form method="POST" action="/api/auth/signout" class="inline">
+          <button
+            type="submit"
+            class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20 text-white"
+          >
+            Sign out
+          </button>
+        </form>
+      </div>
+    </nav>
+
+    {/* Content */}
+    <div class="flex-1">
+      <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <slot />
+      </div>
+    </div>
+  </div>
+</Layout>

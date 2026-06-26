@@ -114,8 +114,7 @@ context.locals.role = role;
 // Role-aware route protection (replace the PROTECTED_ROUTES block):
 const ADMIN_PREFIXES = ["/admin"];
 const OPERATOR_PREFIXES = ["/dashboard"];
-const matchesPrefix = (path: string, prefix: string) =>
-  path === prefix || path.startsWith(prefix + "/");
+const matchesPrefix = (path: string, prefix: string) => path === prefix || path.startsWith(prefix + "/");
 
 const isAdminRoute = ADMIN_PREFIXES.some((p) => matchesPrefix(pathname, p));
 const isOperatorRoute = OPERATOR_PREFIXES.some((p) => matchesPrefix(pathname, p));
@@ -254,6 +253,7 @@ Write `supabase/seed.sql` to provision the first Admin account in the local Supa
 **Intent**: Create a reproducible local dev seed that inserts an Admin user so developers can immediately sign in and test role-protected routes without manually editing the Supabase dashboard. The credentials are intentionally simple dev-only values, clearly marked.
 
 **Contract**: Insert one row into `auth.users` with:
+
 - `id = '00000000-0000-0000-0000-000000000001'::uuid` (fixed UUID for idempotency)
 - `raw_app_meta_data = '{"provider": "email", "providers": ["email"], "role": "admin"}'`
 - `raw_user_meta_data = '{}'`

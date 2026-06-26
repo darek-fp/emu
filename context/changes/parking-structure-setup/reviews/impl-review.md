@@ -1,4 +1,5 @@
 <!-- IMPL-REVIEW-REPORT -->
+
 # Implementation Review: Parking Structure Setup
 
 - **Plan**: context/changes/parking-structure-setup/plan.md
@@ -9,14 +10,14 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| Plan Adherence | WARNING |
-| Scope Discipline | PASS |
-| Safety & Quality | FIXED |
-| Architecture | PASS |
-| Pattern Consistency | FIXED |
-| Success Criteria | PASS |
+| Dimension           | Verdict |
+| ------------------- | ------- |
+| Plan Adherence      | WARNING |
+| Scope Discipline    | PASS    |
+| Safety & Quality    | FIXED   |
+| Architecture        | PASS    |
+| Pattern Consistency | FIXED   |
+| Success Criteria    | PASS    |
 
 ## Findings
 
@@ -137,18 +138,14 @@
 **Review Status**: APPROVED AFTER TRIAGE
 
 All three CRITICAL findings have been fixed and verified:
+
 1. ✅ Conflict detection now throws on errors (fail-closed)
 2. ✅ Batch writes improved with fail-fast error collection
 3. ✅ TOCTOU race condition mitigated with pre-write re-validation
 
-All WARNING findings have been fixed:
-4. ✅ Peak concurrency tie-break added for same-instant edge case
-5. ✅ Null-guard added to `/api/sectors` Supabase client
-6. ✅ `prerender = false` added to `/api/admin/sectors.ts`
+All WARNING findings have been fixed: 4. ✅ Peak concurrency tie-break added for same-instant edge case 5. ✅ Null-guard added to `/api/sectors` Supabase client 6. ✅ `prerender = false` added to `/api/admin/sectors.ts`
 
-OBSERVATION findings recorded as lessons for future work:
-7. ✅ Inline DOM scripts pattern recorded
-8. ✅ Planned components pattern recorded
+OBSERVATION findings recorded as lessons for future work: 7. ✅ Inline DOM scripts pattern recorded 8. ✅ Planned components pattern recorded
 
 **Build Status**: ✅ `npm run build` passes after all fixes
 

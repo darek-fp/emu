@@ -1,12 +1,15 @@
 # EMU parking manager - MVP
 
 ## Main problem
+
 Effective management of parking spaces, consisting of:
+
 - determining the current number of available spots
 - determining spot availability for a requested future time period
 - recording reservations
 
 ## Minimum feature set
+
 - defining the parking lot structure — single or divided into sectors, specifying the number of spots overall or per sector
 - recording reservations for a specified period with availability control for that period
 - during reservation, there should be an option to provide the arrival and departure time
@@ -17,6 +20,7 @@ Effective management of parking spaces, consisting of:
 - simple user account system
 
 ## Out of scope for MVP
+
 - customer accounts
 - direct spot reservations by customers
 - optimization of parking zone selection based on length of stay
@@ -26,4 +30,5 @@ Effective management of parking spaces, consisting of:
 - mobile app (web only at first)
 
 ## Success criteria
+
 - a working application

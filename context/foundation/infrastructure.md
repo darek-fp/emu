@@ -21,14 +21,14 @@ The project already ships the `@astrojs/cloudflare` adapter and targets `cloudfl
 
 ## Platform Comparison
 
-| Platform | CLI-first | Managed/Serverless | Agent docs | Stable deploy API | MCP / Integration | Total |
-|---|---|---|---|---|---|---|
-| **Cloudflare Workers** | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | **5/5** |
-| **Vercel** | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | **5/5** |
-| **Netlify** | ⚡ Partial | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | **4.5/5** |
-| **Railway** | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | ✅ Pass | **5/5** |
-| **Render** | ✅ Pass | ✅ Pass | ✅ Pass | ⚡ Partial | ✅ Pass | **4.5/5** |
-| **Fly.io** | ✅ Pass | ⚡ Partial | ❌ Fail | ✅ Pass | ⚡ Partial | **3/5** |
+| Platform               | CLI-first  | Managed/Serverless | Agent docs | Stable deploy API | MCP / Integration | Total     |
+| ---------------------- | ---------- | ------------------ | ---------- | ----------------- | ----------------- | --------- |
+| **Cloudflare Workers** | ✅ Pass    | ✅ Pass            | ✅ Pass    | ✅ Pass           | ✅ Pass           | **5/5**   |
+| **Vercel**             | ✅ Pass    | ✅ Pass            | ✅ Pass    | ✅ Pass           | ✅ Pass           | **5/5**   |
+| **Netlify**            | ⚡ Partial | ✅ Pass            | ✅ Pass    | ✅ Pass           | ✅ Pass           | **4.5/5** |
+| **Railway**            | ✅ Pass    | ✅ Pass            | ✅ Pass    | ✅ Pass           | ✅ Pass           | **5/5**   |
+| **Render**             | ✅ Pass    | ✅ Pass            | ✅ Pass    | ⚡ Partial        | ✅ Pass           | **4.5/5** |
+| **Fly.io**             | ✅ Pass    | ⚡ Partial         | ❌ Fail    | ✅ Pass           | ⚡ Partial        | **3/5**   |
 
 **Scoring notes:**
 
@@ -40,14 +40,14 @@ The project already ships the `@astrojs/cloudflare` adapter and targets `cloudfl
 
 **Cost after interview weighting (Q2: minimize cost):**
 
-| Platform | Monthly cost at MVP traffic | Notes |
-|---|---|---|
-| Cloudflare Workers | **$0** | 100k req/day free; upgrade to Paid ($5/mo) if CPU > 10ms avg |
-| Vercel | **$0** | 1M invocations/mo + 4 CPU-hours free on Hobby; cold starts without prevention |
-| Netlify | **$0** | 300 credits/mo; each prod deploy costs 15 credits (~20 deploys/mo free) |
-| Render | **$0–$7** | Free with ~1-min cold starts after 15 min idle; ~$7/mo for always-on |
-| Railway | **$5/mo** | Hobby plan minimum; $1/mo Free credit covers ~6 days of a 256MB Node process |
-| Fly.io | **$2–$10/mo** | No free compute tier; credit card required; autostop helps at low traffic |
+| Platform           | Monthly cost at MVP traffic | Notes                                                                         |
+| ------------------ | --------------------------- | ----------------------------------------------------------------------------- |
+| Cloudflare Workers | **$0**                      | 100k req/day free; upgrade to Paid ($5/mo) if CPU > 10ms avg                  |
+| Vercel             | **$0**                      | 1M invocations/mo + 4 CPU-hours free on Hobby; cold starts without prevention |
+| Netlify            | **$0**                      | 300 credits/mo; each prod deploy costs 15 credits (~20 deploys/mo free)       |
+| Render             | **$0–$7**                   | Free with ~1-min cold starts after 15 min idle; ~$7/mo for always-on          |
+| Railway            | **$5/mo**                   | Hobby plan minimum; $1/mo Free credit covers ~6 days of a 256MB Node process  |
+| Fly.io             | **$2–$10/mo**               | No free compute tier; credit card required; autostop helps at low traffic     |
 
 **Adapter switching cost:** Vercel, Netlify, Railway, and Render all require replacing `@astrojs/cloudflare` with `@astrojs/node` (or `@astrojs/vercel`/`@astrojs/netlify`). This means removing workerd-specific code, re-testing env var access patterns, and losing the dev/prod runtime parity provided by the Cloudflare Vite plugin. On a 3-week after-hours timeline this is a meaningful friction cost.
 
@@ -112,18 +112,18 @@ The final issue came from a routine `npm install` that auto-upgraded `@astrojs/c
 
 ## Risk Register
 
-| Risk | Source | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| Free tier 10ms CPU cap triggers `1101` errors on complex SSR pages | Devil's advocate | M | H | Test CPU usage with `wrangler tail` during development. Upgrade to Workers Paid ($5/mo) before launch — budget for it from day one rather than treating free as guaranteed. |
-| `@astrojs/cloudflare` v12→v13 breaking changes hit mid-project | Devil's advocate | M | M | Pin the adapter version in `package.json` (`"@astrojs/cloudflare": "13.x.x"`) and use `npm install --save-exact`. Review the adapter CHANGELOG before any `npm update`. |
-| `@supabase/ssr` cookie mutation behaves differently in workerd vs Node.js | Devil's advocate | M | H | Write an integration test for the middleware auth flow that runs against a deployed Worker (not just `astro dev`) before Week 1 is complete. Validate cookie round-trip explicitly. |
-| CommonJS transitive dependency fails at runtime in workerd | Devil's advocate | L | M | Run `npx wrangler deploy --dry-run` and `wrangler tail` after the first deploy to catch any `require() is not defined` errors before the demo. Use Vite `optimizeDeps.include` for known CJS packages. |
-| Supabase connection pool exhausted under bursty concurrent requests | Unknown unknowns | L | M | For MVP (small user base, low QPS): low risk. If traffic spikes, enable Cloudflare Workers Hyperdrive (Paid plan) as a connection pooler in front of Supabase. |
-| Stale `wrangler pages` tutorials cause deployment confusion | Unknown unknowns | M | L | Always use `wrangler deploy` (Workers), never `wrangler pages deploy`. Bookmark `developers.cloudflare.com/workers/` as the canonical reference. |
-| `astro:env/server` variables silently undefined if wrangler.jsonc missing var declarations | Unknown unknowns | M | H | After `wrangler login`, verify `wrangler.jsonc` declares all env var names under `vars` (non-secret) before running `wrangler secret put`. Test with `wrangler dev --remote` to confirm env resolution in the Workers runtime. |
-| `wrangler tail` log sampling misses concurrent overbooking race condition | Devil's advocate | L | M | For debugging concurrent scenarios, use Supabase's own query logs and Postgres-level locking errors to reconstruct the sequence rather than relying solely on Worker logs. |
-| Workers code rollback does not roll back Supabase DB migrations | Pre-mortem | M | H | Always write additive, backward-compatible migrations. Never drop or rename columns in the same deploy that changes the Worker code referencing them. Use a two-deploy strategy for destructive schema changes. |
-| Workers free plan removed or limits changed by Cloudflare | Research finding | L | L | Workers free plan has been stable for years. If changed, Workers Paid at $5/mo is the immediate fallback with no code changes required. |
+| Risk                                                                                       | Source           | Likelihood | Impact | Mitigation                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------ | ---------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Free tier 10ms CPU cap triggers `1101` errors on complex SSR pages                         | Devil's advocate | M          | H      | Test CPU usage with `wrangler tail` during development. Upgrade to Workers Paid ($5/mo) before launch — budget for it from day one rather than treating free as guaranteed.                                                    |
+| `@astrojs/cloudflare` v12→v13 breaking changes hit mid-project                             | Devil's advocate | M          | M      | Pin the adapter version in `package.json` (`"@astrojs/cloudflare": "13.x.x"`) and use `npm install --save-exact`. Review the adapter CHANGELOG before any `npm update`.                                                        |
+| `@supabase/ssr` cookie mutation behaves differently in workerd vs Node.js                  | Devil's advocate | M          | H      | Write an integration test for the middleware auth flow that runs against a deployed Worker (not just `astro dev`) before Week 1 is complete. Validate cookie round-trip explicitly.                                            |
+| CommonJS transitive dependency fails at runtime in workerd                                 | Devil's advocate | L          | M      | Run `npx wrangler deploy --dry-run` and `wrangler tail` after the first deploy to catch any `require() is not defined` errors before the demo. Use Vite `optimizeDeps.include` for known CJS packages.                         |
+| Supabase connection pool exhausted under bursty concurrent requests                        | Unknown unknowns | L          | M      | For MVP (small user base, low QPS): low risk. If traffic spikes, enable Cloudflare Workers Hyperdrive (Paid plan) as a connection pooler in front of Supabase.                                                                 |
+| Stale `wrangler pages` tutorials cause deployment confusion                                | Unknown unknowns | M          | L      | Always use `wrangler deploy` (Workers), never `wrangler pages deploy`. Bookmark `developers.cloudflare.com/workers/` as the canonical reference.                                                                               |
+| `astro:env/server` variables silently undefined if wrangler.jsonc missing var declarations | Unknown unknowns | M          | H      | After `wrangler login`, verify `wrangler.jsonc` declares all env var names under `vars` (non-secret) before running `wrangler secret put`. Test with `wrangler dev --remote` to confirm env resolution in the Workers runtime. |
+| `wrangler tail` log sampling misses concurrent overbooking race condition                  | Devil's advocate | L          | M      | For debugging concurrent scenarios, use Supabase's own query logs and Postgres-level locking errors to reconstruct the sequence rather than relying solely on Worker logs.                                                     |
+| Workers code rollback does not roll back Supabase DB migrations                            | Pre-mortem       | M          | H      | Always write additive, backward-compatible migrations. Never drop or rename columns in the same deploy that changes the Worker code referencing them. Use a two-deploy strategy for destructive schema changes.                |
+| Workers free plan removed or limits changed by Cloudflare                                  | Research finding | L          | L      | Workers free plan has been stable for years. If changed, Workers Paid at $5/mo is the immediate fallback with no code changes required.                                                                                        |
 
 ---
 
@@ -132,31 +132,39 @@ The final issue came from a routine `npm install` that auto-upgraded `@astrojs/c
 The project already has the `@astrojs/cloudflare` adapter installed. These are the steps to make the first deployment:
 
 1. **Authenticate wrangler** (one-time per machine):
+
    ```bash
    npx wrangler login
    ```
+
    Opens a browser for OAuth. After login, credentials are stored at `~/.wrangler/config/default.toml`.
 
 2. **Verify `wrangler.jsonc` has the `nodejs_compat` flag** (required for Supabase JS client):
+
    ```jsonc
    {
      "compatibility_flags": ["nodejs_compat"],
-     "compatibility_date": "2024-09-23"
+     "compatibility_date": "2024-09-23",
    }
    ```
+
    If the file was generated by `astro add cloudflare` for Astro 6 + adapter v13, the `main` field should point to `@astrojs/cloudflare/entrypoints/server` — verify this before deploying.
 
 3. **Provision Workers Secrets** (one command per secret, per environment):
+
    ```bash
    npx wrangler secret put SUPABASE_URL
    npx wrangler secret put SUPABASE_KEY
    ```
+
    Wrangler prompts for the value interactively. Add the same values as `SUPABASE_URL` and `SUPABASE_KEY` in the GitHub repository's Settings → Secrets and variables → Actions (already required by the existing CI workflow).
 
 4. **Build and deploy**:
+
    ```bash
    npm run build && npx wrangler deploy
    ```
+
    On success, wrangler prints the deployed Worker URL (`https://<name>.<account>.workers.dev`). Verify the app responds correctly before adding a custom domain.
 
 5. **Confirm the Worker is live and logs are flowing**:
@@ -170,6 +178,7 @@ The project already has the `@astrojs/cloudflare` adapter installed. These are t
 ## Out of Scope
 
 The following were not evaluated in this research:
+
 - Docker image configuration
 - CI/CD pipeline setup (the project already has `.github/workflows/ci.yml`; extending it for automated deployment is a separate task)
 - Production-scale architecture (multi-region, HA, DR)

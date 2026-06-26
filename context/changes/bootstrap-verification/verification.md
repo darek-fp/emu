@@ -38,9 +38,9 @@ hints:
 
 ## Pre-scaffold verification
 
-| Signal      | Value                                              | Severity | Notes                                        |
-| ----------- | -------------------------------------------------- | -------- | -------------------------------------------- |
-| npm package | not run                                            | —        | cmd_template starts with `git clone`; npm check skipped |
+| Signal      | Value                                                | Severity | Notes                                                             |
+| ----------- | ---------------------------------------------------- | -------- | ----------------------------------------------------------------- |
+| npm package | not run                                              | —        | cmd_template starts with `git clone`; npm check skipped           |
 | GitHub repo | przeprogramowani/10x-astro-starter pushed 2026-05-17 | fresh    | fetched via GitHub API (web_fetch fallback; gh CLI not installed) |
 
 ## Scaffold log
@@ -84,27 +84,28 @@ None.
 
 ## Hints recorded but not acted on
 
-| Hint                    | Value                 |
-| ----------------------- | --------------------- |
-| bootstrapper_confidence | first-class           |
-| quality_override        | false                 |
-| path_taken              | standard              |
-| self_check_answers      | null                  |
-| team_size               | solo                  |
-| deployment_target       | cloudflare-pages      |
-| ci_provider             | github-actions        |
-| ci_default_flow         | auto-deploy-on-merge  |
-| has_auth                | true                  |
-| has_payments            | false                 |
-| has_realtime            | false                 |
-| has_ai                  | false                 |
-| has_background_jobs     | false                 |
+| Hint                    | Value                |
+| ----------------------- | -------------------- |
+| bootstrapper_confidence | first-class          |
+| quality_override        | false                |
+| path_taken              | standard             |
+| self_check_answers      | null                 |
+| team_size               | solo                 |
+| deployment_target       | cloudflare-pages     |
+| ci_provider             | github-actions       |
+| ci_default_flow         | auto-deploy-on-merge |
+| has_auth                | true                 |
+| has_payments            | false                |
+| has_realtime            | false                |
+| has_ai                  | false                |
+| has_background_jobs     | false                |
 
 ## Next steps
 
 Next: a future skill will set up agent context (CLAUDE.md, AGENTS.md). For now, your project is scaffolded and verified — happy hacking.
 
 Useful manual steps in the meantime:
+
 - Review `README.md.scaffold` and `.github/workflows/ci.yml.scaffold` — these are the starter's versions; diff against your existing files and decide what to keep.
 - Address the `devalue` HIGH finding at your project's risk tolerance: `npm audit fix` (may use a breaking change).
 - `git add .` and commit the scaffolded state before making further changes.

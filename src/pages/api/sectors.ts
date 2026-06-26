@@ -58,7 +58,7 @@ export async function GET(context: APIContext) {
         error: "Failed to fetch sectors",
         details: message,
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }

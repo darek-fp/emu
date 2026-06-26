@@ -24,20 +24,21 @@ We're building admin-configurable pricing tiers (per-sector, with discount sched
 
 ## Key Decisions Made
 
-| Decision | Choice | Why | Source |
-|----------|--------|-----|--------|
-| Pricing scope | Per-sector | Enables different rates for different parking lots/areas; aligns with reservation model | Discovery |
-| Operator lifecycle | Soft-delete (deactivated_at) | Preserves audit trail and historical reservations; reactivation possible | Discovery |
-| Tier versioning | Keep old tiers active=false | New tier becomes default; old tiers available for audit; existing reservations reference immutable snapshot | Discovery |
-| Discount model | Admin defines tiers with day-range steps | Flexibility: 1-3 days at rate X, 4-7 at rate Y, 8+ at rate Z; floor per tier not global | Discovery |
-| Fractional days | Any partial day counts as full | Simplified: 2pm Mon to 10am Wed = 3 days for tier calculation | Discovery |
-| Price override | Operator can override with flag | No cap, no approval gate; audit flag logs who overrode and when | Discovery |
-| Operator provisioning | Admin generates temp password | No self-service signup; admin shares password securely; operator must change on first login | Discovery |
-| Sector assignment | Checkboxes during creation | Simple UI, operators assigned to 1+ sectors, restricts their view/edit scope | Discovery |
+| Decision              | Choice                                   | Why                                                                                                         | Source    |
+| --------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------- |
+| Pricing scope         | Per-sector                               | Enables different rates for different parking lots/areas; aligns with reservation model                     | Discovery |
+| Operator lifecycle    | Soft-delete (deactivated_at)             | Preserves audit trail and historical reservations; reactivation possible                                    | Discovery |
+| Tier versioning       | Keep old tiers active=false              | New tier becomes default; old tiers available for audit; existing reservations reference immutable snapshot | Discovery |
+| Discount model        | Admin defines tiers with day-range steps | Flexibility: 1-3 days at rate X, 4-7 at rate Y, 8+ at rate Z; floor per tier not global                     | Discovery |
+| Fractional days       | Any partial day counts as full           | Simplified: 2pm Mon to 10am Wed = 3 days for tier calculation                                               | Discovery |
+| Price override        | Operator can override with flag          | No cap, no approval gate; audit flag logs who overrode and when                                             | Discovery |
+| Operator provisioning | Admin generates temp password            | No self-service signup; admin shares password securely; operator must change on first login                 | Discovery |
+| Sector assignment     | Checkboxes during creation               | Simple UI, operators assigned to 1+ sectors, restricts their view/edit scope                                | Discovery |
 
 ## Scope
 
 **In scope:**
+
 - Migrations: pricing_tiers (add sector + versioning), operators, operator_sector_assignments, reservations (add tier + operator FK)
 - Pricing calculation service: fractional day counting, discount tier lookup, floor per tier, unit tests
 - Admin APIs: create/list operators, soft-delete, create/edit pricing tiers
@@ -46,6 +47,7 @@ We're building admin-configurable pricing tiers (per-sector, with discount sched
 - RLS policies: operators see only assigned sectors; admins see all
 
 **Out of scope:**
+
 - Self-service operator registration, bulk imports, pricing templates, occupancy-based pricing, price negotiation workflows, multi-facility support, dynamic pricing
 
 ## Architecture / Approach
@@ -64,6 +66,7 @@ Admin → Operators (soft-delete, sector assignments) → Sector-restricted RLS
 ```
 
 **Data flow:**
+
 1. Admin defines pricing tiers for each sector (base rate + discount steps + floor)
 2. Operator logs in → sees only assigned sectors
 3. Operator creates reservation → API fetches active tier for sector → calculates price → stores with tier_id + operator_id
@@ -72,14 +75,14 @@ Admin → Operators (soft-delete, sector assignments) → Sector-restricted RLS
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-|-------|------------------|----------|
-| 1. Data Model | Migrations: pricing_tiers versioning, operators, sector assignments, reservations audit columns | Migration safety: backfilling existing data without loss |
-| 2. Pricing Service | calculatePrice() logic: fractional days, discount tiers, floor; unit tests | Correct day-counting and tier-boundary edge cases |
-| 3. Operator API | POST/GET/PATCH endpoints: create, list, deactivate operators; temp password generation | Temp password security and display-once UX |
-| 4. Pricing UI | Admin form to create/edit tiers per sector; extract to React component; pricing list page | Form validation and discount-step row handling |
-| 5. Operator UI | Admin form to create operators, assign sectors; operator list with deactivation; middleware sector filtering | Operator sector restriction enforcement in RLS |
-| 6. Reservation Integration | Price calculation in reservation creation API; capture tier snapshot; operator sector validation; price override audit | Price immutability and audit trail accuracy |
+| Phase                      | What it delivers                                                                                                       | Key risk                                                 |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| 1. Data Model              | Migrations: pricing_tiers versioning, operators, sector assignments, reservations audit columns                        | Migration safety: backfilling existing data without loss |
+| 2. Pricing Service         | calculatePrice() logic: fractional days, discount tiers, floor; unit tests                                             | Correct day-counting and tier-boundary edge cases        |
+| 3. Operator API            | POST/GET/PATCH endpoints: create, list, deactivate operators; temp password generation                                 | Temp password security and display-once UX               |
+| 4. Pricing UI              | Admin form to create/edit tiers per sector; extract to React component; pricing list page                              | Form validation and discount-step row handling           |
+| 5. Operator UI             | Admin form to create operators, assign sectors; operator list with deactivation; middleware sector filtering           | Operator sector restriction enforcement in RLS           |
+| 6. Reservation Integration | Price calculation in reservation creation API; capture tier snapshot; operator sector validation; price override audit | Price immutability and audit trail accuracy              |
 
 **Prerequisites:** Supabase auth working, middleware established, admin pages scaffolded, sector model exists  
 **Estimated effort:** ~3-4 sessions across 6 phases (roughly ~15-20 hours for implementation + testing)

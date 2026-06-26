@@ -1,0 +1,41 @@
+
+> emu-parking-manager@0.0.1 build
+> astro build
+
+[2m16:23:07[22m [34m[@astrojs/cloudflare][39m Enabling image processing with Cloudflare Images for production with the "IMAGES" Images binding.
+[2m16:23:07[22m [34m[@astrojs/cloudflare][39m Enabling sessions with Cloudflare KV with the "SESSION" KV binding.
+[2m16:23:07[22m [34m[vite][39m Re-optimizing dependencies because vite config has changed
+[33m[1m16:23:08[22m [WARN] [vite][39m [2mDefault inspector port 9229 not available, using 9231 instead
+[22m
+Using secrets defined in .dev.vars
+16:23:09 [ERROR] [vite] (!) Failed to run dependency scan. Skipping dependency pre-bundling. Error: The following dependencies are imported but could not be resolved:
+
+  @/components/ui/alert-dialog (imported by C:/Projects/AI/emu/src/components/admin/SectorForm.tsx)
+
+Are they installed?
+    at file:///C:/Projects/AI/emu/node_modules/vite/dist/node/chunks/config.js:31923:33
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///C:/Projects/AI/emu/node_modules/vite/dist/node/chunks/config.js:34131:15
+[2m16:23:13[22m [34m[vite][39m [32m✨ new dependencies optimized: [33m@astrojs/cloudflare/entrypoints/server[32m[39m
+[2m16:23:13[22m [34m[vite][39m [32m✨ optimized dependencies changed. reloading[39m
+[2m16:23:13[22m [34m[vite][39m [vite] program reload
+[2m16:23:14[22m [34m[vite][39m Re-optimizing dependencies because vite config has changed
+[2m16:23:14[22m [34m[vite][39m Re-optimizing dependencies because vite config has changed
+[2m16:23:17[22m [34m[types][39m Generated [2m9.57s[22m
+[2m16:23:17[22m [34m[build][39m output: [34m"server"[39m
+[2m16:23:17[22m [34m[build][39m mode: [34m"server"[39m
+[2m16:23:17[22m [34m[build][39m directory: [34mC:\Projects\AI\emu\dist\[39m
+[2m16:23:17[22m [34m[build][39m adapter: [32m@astrojs/cloudflare[39m
+[2m16:23:17[22m [34m[build][39m Collecting build info...
+[2m16:23:17[22m [34m[build][39m [32m✓ Completed in 9.64s.[39m
+[2m16:23:17[22m [34m[build][39m Building server entrypoints...
+Using secrets defined in .dev.vars
+[2m16:23:20[22m [34m[vite][39m [32m✓ built in 2.68s[39m
+Using secrets defined in .dev.vars
+[2m16:23:25[22m [34m[vite][39m [32m✓ built in 5.37s[39m
+[2m16:23:29[22m [34m[vite][39m [32m✓ built in 3.47s[39m
+[2m16:23:29[22m [34m[build][39m Rearranging server assets...
+[2m16:23:29[22m [34m[build][39m [32m✓ Completed in 11.76s.[39m
+[33m[1m16:23:29[22m [WARN] [@astrojs/sitemap][39m The Sitemap integration requires the `site` astro.config option. Skipping.
+[2m16:23:29[22m [34m[build][39m Server built in [1m21.42s[22m
+[2m16:23:29[22m [34m[build][39m [1mComplete![22m

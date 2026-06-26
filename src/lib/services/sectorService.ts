@@ -19,7 +19,7 @@ export interface ConflictInfo {
 export async function getPeakConcurrentReservations(
   supabaseClient: ReturnType<typeof createClient>,
   sectorId: string,
-  timeRange?: { start: Date; end: Date }
+  timeRange?: { start: Date; end: Date },
 ): Promise<number> {
   if (!supabaseClient) {
     throw new Error("Supabase client not initialized");
@@ -83,7 +83,7 @@ export async function getPeakConcurrentReservations(
 export async function checkSectorConflict(
   supabaseClient: ReturnType<typeof createClient>,
   sectorId: string,
-  newSpotCount: number
+  newSpotCount: number,
 ): Promise<ConflictInfo | null> {
   if (!supabaseClient) {
     throw new Error("Supabase client not initialized");
