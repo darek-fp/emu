@@ -111,17 +111,44 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     // Create operators table record using admin function (bypasses RLS)
-    const { data: operatorIdData, error: operatorError } = await supabase
-      .rpc("create_operator_by_admin", { p_email: email })
-      .single();
+    // First check if the RPC function exists by trying to call it
+    const { data: operatorIdData, error: operatorError } = await supabase.rpc("create_operator_by_admin", { 
+      p_email: email,
+    });
 
-    if (operatorError || !operatorIdData) {
-      const errorMsg = operatorError instanceof Error ? operatorError.message : String(operatorError);
-      console.error("[POST /api/admin/operators] Failed to create operator record via RPC:", errorMsg);
-      return new Response(JSON.stringify({ success: false, error: `Failed to create operator record: ${errorMsg}` }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (operatorError) {
+      const errorDetails = {
+        message: operatorError.message,
+        code: (operatorError as unknown as Record<string, unknown>)?.code,
+        details: (operatorError as unknown as Record<string, unknown>)?.details,
+      };
+      console.error("[POST /api/admin/operators] RPC call failed:", errorDetails);
+      
+      // Check if error is "function does not exist"
+      if (operatorError.message?.includes("does not exist")) {
+        console.error("[POST /api/admin/operators] RPC function not found. Did you apply the migration?");
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Server error: RPC function not available. Please contact support.",
+            debug: process.env.NODE_ENV === "development" ? { operatorError: operatorError.message } : undefined,
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({ success: false, error: `Failed to create operator: ${operatorError.message}` }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!operatorIdData) {
+      console.error("[POST /api/admin/operators] RPC returned no data");
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to create operator record" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     const operatorId = operatorIdData as string;
