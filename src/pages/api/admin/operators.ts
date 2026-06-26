@@ -183,8 +183,6 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     // Return success response with operator details and temp password
-    const tempPassword = generateTempPassword();
-    
     console.log("[POST /api/admin/operators] Success response:", { operatorId, email, tempPassword: "***" });
     
     return new Response(
