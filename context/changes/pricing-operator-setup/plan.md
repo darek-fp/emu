@@ -687,12 +687,13 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 - [x] 5.6d Fix SignUpForm to use JSON API submission instead of form POST — 0a5526ae
 - [x] 5.6e Improve signup form styling and email normalization — da002c09
 - [x] 5.6f Add validation for operator creation response — c202fb32
+- [x] 5.6g Simplify operator creation flow: admins create operators with passwords directly, operators log in immediately — (pending)
 
 #### Manual
 
-- [ ] 5.7 Create operator via UI (email + sectors), copy temp password from success modal
-- [ ] 5.8 Operator signs up via /auth/signup with email + temp password (must change on first login)
-- [ ] 5.9 Log in as operator, verify only assigned sectors visible in dashboard
+- [ ] 5.7 Create operator via UI (email + password + sectors), verify immediate login works
+- [ ] 5.8 Log in as newly created operator with provided password
+- [ ] 5.9 Verify operator sees only assigned sectors in dashboard
 - [ ] 5.10 Deactivate operator via UI, verify status update in list
 - [ ] 5.11 Test operator sector restriction: try to create reservation in unassigned sector (should be rejected)
 

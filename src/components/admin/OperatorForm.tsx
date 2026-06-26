@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Lock } from "lucide-react";
 
 interface OperatorFormProps {
   sectors: { id: string; name: string }[];
@@ -8,11 +9,11 @@ interface OperatorFormProps {
 interface OperatorResponse {
   operatorId: string;
   email: string;
-  tempPassword: string;
 }
 
 export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +26,13 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       newErrors.email = "Please enter a valid email address";
+    }
+
+    // Validate password
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     if (selectedSectors.length === 0) {
@@ -55,6 +63,7 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          password,
           sectorIds: selectedSectors,
         }),
       });
@@ -68,11 +77,11 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
         return;
       }
 
-      const data = (await response.json()) as { success?: boolean; operatorId?: string; email?: string; tempPassword?: string };
+      const data = (await response.json()) as { success?: boolean; operatorId?: string; email?: string };
       console.log("[OperatorForm] Success response:", data);
       
       // Verify required fields exist
-      if (!data.operatorId || !data.email || !data.tempPassword) {
+      if (!data.operatorId || !data.email) {
         console.error("[OperatorForm] Missing required fields in response:", data);
         setErrors({ submit: "Invalid response from server - incomplete operator data" });
         return;
@@ -81,6 +90,7 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
       setSuccessMessage(data as OperatorResponse);
       // Reset form
       setEmail("");
+      setPassword("");
       setSelectedSectors([]);
       setErrors({});
     } catch (err) {
@@ -95,6 +105,7 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
   const handleCloseSuccess = () => {
     setSuccessMessage(null);
     setEmail("");
+    setPassword("");
     setSelectedSectors([]);
     setErrors({});
     
@@ -106,38 +117,23 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
     }
   };
 
-  const handleCopyPassword = () => {
-    if (successMessage) {
-      void navigator.clipboard.writeText(successMessage.tempPassword);
-    }
-  };
-
   if (successMessage) {
     return (
       <div className="space-y-6">
         <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
           <h3 className="font-medium text-green-400">Operator Created Successfully</h3>
           <p className="mt-2 text-sm text-green-300">
-            Operator account has been created. Share this temporary password with the operator:
+            The operator account has been created and can log in immediately with the email and password you provided.
           </p>
           <div className="mt-4 space-y-2">
             <div>
-              <span className="font-medium text-white">Temp Password:</span>
-              <div className="mt-1 flex items-center gap-2">
-                <div className="flex-1 rounded border border-white/20 bg-white/10 px-3 py-2 font-mono text-sm break-all text-white">
-                  {successMessage.tempPassword}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyPassword}
-                  className="rounded-lg border border-white/30 px-3 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:border-white/50 hover:bg-white/10"
-                >
-                  Copy
-                </button>
+              <span className="font-medium text-white">Email:</span>
+              <div className="mt-1 rounded border border-white/20 bg-white/10 px-3 py-2 font-mono text-sm text-white">
+                {successMessage.email}
               </div>
             </div>
           </div>
-          <p className="mt-4 text-xs text-green-300">The operator must change this password on first login.</p>
+          <p className="mt-4 text-xs text-green-300">The operator can now sign in at /auth/signin</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -176,6 +172,24 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
           className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         />
         {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
+      </div>
+
+      {/* Password Input */}
+      <div>
+        <label htmlFor="password" className="block text-sm font-medium text-white/80">
+          Initial Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+          placeholder="Min. 8 characters"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        />
+        {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
       </div>
 
       {/* Sector Selection */}

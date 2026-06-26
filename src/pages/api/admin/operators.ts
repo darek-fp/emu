@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
-import { generateTempPassword, hashPassword } from "@/lib/auth";
 import { z } from "zod";
 
 export const prerender = false;
@@ -8,6 +7,7 @@ export const prerender = false;
 // Request validation schemas
 const createOperatorSchema = z.object({
   email: z.email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   sectorIds: z.array(z.uuid()).min(1, "At least one sector must be assigned"),
 });
 
@@ -70,11 +70,13 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Parse and validate request body
     let email: string;
+    let password: string;
     let sectorIds: string[];
     try {
       const body = (await context.request.json()) as unknown;
       const parsed = createOperatorSchema.parse(body);
       email = parsed.email.toLowerCase().trim();
+      password = parsed.password;
       sectorIds = parsed.sectorIds;
       console.log("[POST /api/admin/operators] Creating operator:", { email, sectorCount: sectorIds.length });
     } catch (err) {
@@ -110,56 +112,60 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Generate temporary password
-    const tempPassword = generateTempPassword();
-    const tempPasswordHash = hashPassword(tempPassword);
-    const tempPasswordExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Expires in 24 hours
-
-    // Create operators table record using admin function (bypasses RLS)
-    // First check if the RPC function exists by trying to call it
-    const { data: operatorIdData, error: operatorError } = await supabase.rpc("create_operator_by_admin", { 
-      p_email: email,
-      p_temp_password_hash: tempPasswordHash,
-      p_temp_password_expires_at: tempPasswordExpiresAt,
+    // Create auth user first
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        role: "operator",
+      },
     });
 
-    if (operatorError) {
-      const errorDetails = {
-        message: operatorError.message,
-        code: (operatorError as unknown as Record<string, unknown>)?.code,
-        details: (operatorError as unknown as Record<string, unknown>)?.details,
-      };
-      console.error("[POST /api/admin/operators] RPC call failed:", errorDetails);
+    if (authError || !authData.user) {
+      const authErrorMsg = authError?.message || "Failed to create auth user";
+      console.error("[POST /api/admin/operators] Auth user creation failed:", authErrorMsg);
+      return new Response(
+        JSON.stringify({ success: false, error: `Failed to create auth user: ${authErrorMsg}` }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const userId = authData.user.id;
+    console.log("[POST /api/admin/operators] Auth user created:", { userId, email });
+
+    // Create operator record with the auth user ID linked
+    const { data: operatorData, error: operatorError } = await supabase
+      .from("operators")
+      .insert([
+        {
+          email,
+          user_id: userId,
+          deactivated_at: null,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (operatorError || !operatorData?.id) {
+      const operatorErrorMsg = operatorError instanceof Error ? operatorError.message : String(operatorError);
+      console.error("[POST /api/admin/operators] Failed to create operator record:", operatorErrorMsg);
       
-      // Check if error is "function does not exist"
-      if (operatorError.message?.includes("does not exist")) {
-        console.error("[POST /api/admin/operators] RPC function not found. Did you apply the migration?");
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Server error: RPC function not available. Please contact support.",
-            debug: process.env.NODE_ENV === "development" ? { operatorError: operatorError.message } : undefined,
-          }),
-          { status: 500, headers: { "Content-Type": "application/json" } },
-        );
+      // Clean up auth user if operator creation fails
+      try {
+        await supabase.auth.admin.deleteUser(userId);
+      } catch (cleanupErr) {
+        console.error("[POST /api/admin/operators] Failed to clean up auth user:", cleanupErr);
       }
-      
+
       return new Response(
-        JSON.stringify({ success: false, error: `Failed to create operator: ${operatorError.message}` }),
+        JSON.stringify({ success: false, error: `Failed to create operator record: ${operatorErrorMsg}` }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
-    if (!operatorIdData) {
-      console.error("[POST /api/admin/operators] RPC returned no data");
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to create operator record" }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    const operatorId = operatorIdData as string;
-    console.log("[POST /api/admin/operators] Operator created via RPC:", { operatorId, email });
+    const operatorId = operatorData.id;
+    console.log("[POST /api/admin/operators] Operator created:", { operatorId, email });
 
     // Assign sectors using admin function (bypasses RLS)
     const { error: assignmentError } = await supabase.rpc("assign_operator_sectors", {
@@ -182,15 +188,14 @@ export async function POST(context: APIContext): Promise<Response> {
       });
     }
 
-    // Return success response with operator details and temp password
-    console.log("[POST /api/admin/operators] Success response:", { operatorId, email, tempPassword: "***" });
+    // Return success response with operator details
+    console.log("[POST /api/admin/operators] Success response:", { operatorId, email });
     
     return new Response(
       JSON.stringify({
         success: true,
         operatorId,
         email,
-        tempPassword,
         sectors: sectors as unknown as SectorInfo[],
       }),
       { status: 201, headers: { "Content-Type": "application/json" } },
