@@ -129,6 +129,9 @@ export function PricingTierForm({
       if (onSave) {
         onSave({ sectorId: selectedSectorId, baseRate, floor, discountSteps });
       }
+      
+      // Dispatch event to notify form container to reload
+      window.dispatchEvent(new CustomEvent("tierSaved"));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setErrors({ submit: message });
