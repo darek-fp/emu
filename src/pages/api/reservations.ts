@@ -21,24 +21,28 @@ export const POST: APIRoute = async (context) => {
   const supabase = createClient(context.request.headers, context.cookies);
 
   try {
-    const body = await context.request.json() as {
-      sectorId: string;
-      arrivalAt: string;
-      departureAt: string;
-      customerName: string;
-      licensePlate: string;
-      priceOverride?: number;
-    };
+    // Validate request body with zod
+    import('zod');
+    const z = (await import('zod')).z;
+    const reservationSchema = z.object({
+      sectorId: z.string().uuid(),
+      arrivalAt: z.string(),
+      departureAt: z.string(),
+      customerName: z.string().min(1),
+      licensePlate: z.string().min(1),
+      priceOverride: z.number().positive().optional(),
+    });
 
-    const { sectorId, arrivalAt, departureAt, customerName, licensePlate, priceOverride } = body;
-
-    // Validate required fields
-    if (!sectorId || !arrivalAt || !departureAt || !customerName || !licensePlate) {
+    const raw = await context.request.json();
+    const parse = reservationSchema.safeParse(raw);
+    if (!parse.success) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Invalid request', details: parse.error.format() }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    const { sectorId, arrivalAt, departureAt, customerName, licensePlate, priceOverride } = parse.data;
 
     // Get operator record
     const { data: operator, error: operatorError } = await supabase
@@ -123,11 +127,8 @@ export const POST: APIRoute = async (context) => {
 
     if (createError || !reservation) {
       console.error("Reservation creation error:", createError);
-      // Return more detailed error during development to help debugging
-      const errMessage = createError?.message ?? (createError ? JSON.stringify(createError) : "Unknown DB error");
-      const errDetails = (createError as any)?.details ?? undefined;
       return new Response(
-        JSON.stringify({ error: "Failed to create reservation", details: errMessage, info: errDetails }),
+        JSON.stringify({ error: "Failed to create reservation" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }

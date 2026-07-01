@@ -18,42 +18,42 @@ export const POST: APIRoute = async (context) => {
   const supabase = createClient(context.request.headers, context.cookies);
 
   try {
-    const body = await context.request.json() as {
-      sectorId: string;
-      arrivalAt: string;
-      departureAt: string;
-    };
-
-    const { sectorId, arrivalAt, departureAt } = body;
-
-    if (!sectorId || !arrivalAt || !departureAt) {
+    // Validate request body with zod
+    const z = (await import('zod')).z;
+    const schema = z.object({ sectorId: z.string().uuid(), arrivalAt: z.string(), departureAt: z.string() });
+    const raw = await context.request.json();
+    const parsed = schema.safeParse(raw);
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Invalid request', details: parsed.error.format() }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { sectorId, arrivalAt, departureAt } = parsed.data;
+
+    // Enforce operator access to the sector to avoid information leakage
+    const operatorSectors: string[] = (context.locals && (context.locals as any).operatorSectors) || [];
+    if (!operatorSectors.includes(sectorId)) {
+      return new Response(
+        JSON.stringify({ error: 'Access denied to this sector' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     // Fetch active pricing tier for the sector
-    console.log(`[calculate-price] Fetching tier for sector: ${sectorId}`);
     const { data: pricingTier, error: tierError } = await supabase
-      .from("pricing_tiers")
-      .select("*")
-      .eq("sector_id", sectorId)
-      .is("ended_at", null)
+      .from('pricing_tiers')
+      .select('*')
+      .eq('sector_id', sectorId)
+      .is('ended_at', null)
       .single();
 
-    if (tierError) {
-      console.error(`[calculate-price] Tier fetch error:`, tierError);
-    }
-    console.log(`[calculate-price] Tier result:`, { found: !!pricingTier, tier: pricingTier });
-
     if (tierError || !pricingTier) {
+      console.error('Pricing tier fetch failed for sector', sectorId, tierError);
       return new Response(
-        JSON.stringify({ 
-          error: "No active pricing tier for this sector, but pricing is configured",
-          debug: { sectorId, tierError: tierError?.message }
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'No active pricing tier for this sector' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 

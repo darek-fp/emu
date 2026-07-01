@@ -36,15 +36,12 @@ export function createAdminClient() {
     return null;
   }
 
-  // Use service role key if available (for auth admin operations)
-  // Fall back to regular key if service role key not set
-  const apiKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_KEY;
-  
-  if (!apiKey) {
-    return null;
+  // Require service role key for admin operations — fail fast if not present
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required to create admin client');
   }
 
-  return createSupabaseClient(SUPABASE_URL, apiKey, {
+  return createSupabaseClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

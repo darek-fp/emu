@@ -143,22 +143,23 @@ export function calculatePrice(arrival: Date, departure: Date, tier: PricingTier
     }
   }
 
-  // If no discount tiers matched (or stay is shorter than first tier), use base rate with floor
-  if (breakdown.length === 0 && stayDurationDays > 0) {
-    const appliedRate = Math.max(tier.base_daily_rate, tier.daily_floor);
-    const subtotal = appliedRate * stayDurationDays;
-    totalPrice = subtotal;
+  // If some discount tiers applied but we haven't assigned all days, assign remaining days at base rate (respecting floor)
+  if (daysAssigned < stayDurationDays) {
+    const remainingDays = stayDurationDays - daysAssigned;
+    const appliedRateForRemaining = Math.max(tier.base_daily_rate, tier.daily_floor);
+    const subtotal = appliedRateForRemaining * remainingDays;
+    totalPrice += subtotal;
 
     breakdown.push({
       tierIndex: -1,
-      dayMin: 1,
+      dayMin: daysAssigned + 1,
       dayMax: stayDurationDays,
-      daysInRange: stayDurationDays,
+      daysInRange: remainingDays,
       discountPercent: 0,
       baseRate: tier.base_daily_rate,
       discountedRate: tier.base_daily_rate,
       floorRate: tier.daily_floor,
-      appliedRate,
+      appliedRate: appliedRateForRemaining,
       subtotal,
     });
   }
