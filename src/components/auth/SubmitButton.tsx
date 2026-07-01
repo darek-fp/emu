@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 
 interface SubmitButtonProps {
@@ -10,8 +9,9 @@ interface SubmitButtonProps {
 }
 
 export function SubmitButton({ pendingText, icon, children, disabled: externalDisabled }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
-  const isDisabled = pending || externalDisabled;
+  // Note: useFormStatus is not available in client components
+  // Disable is handled via externalDisabled prop only
+  const isDisabled = externalDisabled;
 
   return (
     <Button
