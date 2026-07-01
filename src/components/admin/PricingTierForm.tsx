@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 
 interface DiscountStep {
   dayMin: number;
@@ -141,12 +140,14 @@ export function PricingTierForm({
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       {errors.submit && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{errors.submit}</div>
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+          {errors.submit}
+        </div>
       )}
 
       {/* Sector Selection */}
       <div>
-        <label htmlFor="sector" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="sector" className="block text-sm font-medium text-white/80">
           Sector
         </label>
         <select
@@ -155,21 +156,21 @@ export function PricingTierForm({
           onChange={(e) => {
             setSelectedSectorId(e.target.value);
           }}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="">Select a sector</option>
           {sectors.map((s) => (
-            <option key={s.id} value={s.id}>
+            <option key={s.id} value={s.id} className="bg-gray-900">
               {s.name}
             </option>
           ))}
         </select>
-        {errors.sector && <p className="mt-1 text-sm text-red-600">{errors.sector}</p>}
+        {errors.sector && <p className="mt-1 text-sm text-red-400">{errors.sector}</p>}
       </div>
 
       {/* Base Rate */}
       <div>
-        <label htmlFor="baseRate" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="baseRate" className="block text-sm font-medium text-white/80">
           Base Daily Rate ($)
         </label>
         <input
@@ -181,14 +182,14 @@ export function PricingTierForm({
           onChange={(e) => {
             setBaseRate(parseFloat(e.target.value));
           }}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        {errors.baseRate && <p className="mt-1 text-sm text-red-600">{errors.baseRate}</p>}
+        {errors.baseRate && <p className="mt-1 text-sm text-red-400">{errors.baseRate}</p>}
       </div>
 
       {/* Daily Floor */}
       <div>
-        <label htmlFor="floor" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="floor" className="block text-sm font-medium text-white/80">
           Daily Floor ($)
         </label>
         <input
@@ -200,30 +201,34 @@ export function PricingTierForm({
           onChange={(e) => {
             setFloor(parseFloat(e.target.value));
           }}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        {errors.floor && <p className="mt-1 text-sm text-red-600">{errors.floor}</p>}
+        {errors.floor && <p className="mt-1 text-sm text-red-400">{errors.floor}</p>}
       </div>
 
       {/* Discount Steps */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">Discount Steps</label>
-          <Button type="button" onClick={handleAddStep} variant="outline" size="sm" className="text-xs">
-            Add Step
-          </Button>
+          <label className="block text-sm font-medium text-white/80">Discount Steps</label>
+          <button
+            type="button"
+            onClick={handleAddStep}
+            className="rounded px-3 py-1 text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white"
+          >
+            + Add Step
+          </button>
         </div>
 
-        {errors.discountSteps && <p className="mb-2 text-sm text-red-600">{errors.discountSteps}</p>}
+        {errors.discountSteps && <p className="mb-2 text-sm text-red-400">{errors.discountSteps}</p>}
 
         {discountSteps.length === 0 ? (
-          <p className="text-sm text-gray-500">No discount steps configured. Click &quot;Add Step&quot; to add one.</p>
+          <p className="text-sm text-white/60">No discount steps configured. Click &quot;+ Add Step&quot; to add one.</p>
         ) : (
           <div className="space-y-3">
             {discountSteps.map((step, index) => (
-              <div key={index} className="flex items-end gap-3 rounded-lg border border-gray-200 p-3">
+              <div key={index} className="flex items-end gap-3 rounded-lg border border-white/20 bg-white/5 p-3">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600">Day Min</label>
+                  <label className="block text-xs font-medium text-white/60">Day Min</label>
                   <input
                     type="number"
                     min="1"
@@ -231,11 +236,11 @@ export function PricingTierForm({
                     onChange={(e) => {
                       handleStepChange(index, "dayMin", parseInt(e.target.value));
                     }}
-                    className="mt-1 block w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    className="mt-1 block w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-white placeholder-white/40 focus:outline-none"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600">Day Max</label>
+                  <label className="block text-xs font-medium text-white/60">Day Max</label>
                   <input
                     type="number"
                     min="1"
@@ -243,11 +248,11 @@ export function PricingTierForm({
                     onChange={(e) => {
                       handleStepChange(index, "dayMax", parseInt(e.target.value));
                     }}
-                    className="mt-1 block w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    className="mt-1 block w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-white placeholder-white/40 focus:outline-none"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600">Discount %</label>
+                  <label className="block text-xs font-medium text-white/60">Discount %</label>
                   <input
                     type="number"
                     min="0"
@@ -257,20 +262,18 @@ export function PricingTierForm({
                     onChange={(e) => {
                       handleStepChange(index, "discountPercent", parseInt(e.target.value));
                     }}
-                    className="mt-1 block w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    className="mt-1 block w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-white placeholder-white/40 focus:outline-none"
                   />
                 </div>
-                <Button
+                <button
                   type="button"
                   onClick={() => {
                     handleRemoveStep(index);
                   }}
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:bg-red-50"
+                  className="rounded px-3 py-1 text-sm text-red-400 hover:bg-red-500/10"
                 >
                   Remove
-                </Button>
+                </button>
               </div>
             ))}
           </div>
@@ -279,13 +282,21 @@ export function PricingTierForm({
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+        >
           {isSubmitting ? "Saving..." : "Save Tier"}
-        </Button>
+        </button>
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
+          >
             Cancel
-          </Button>
+          </button>
         )}
       </div>
     </form>
