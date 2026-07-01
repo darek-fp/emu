@@ -1,6 +1,7 @@
 ---
 import OperatorLayout from "@/layouts/OperatorLayout.astro";
 import { createClient } from "@/lib/supabase";
+import { ReservationForm } from "@/components/ReservationForm";
 import type { Database } from "@/database.types";
 
 const { user, role, operatorSectors } = Astro.locals;
@@ -8,6 +9,7 @@ const supabase = createClient(Astro.request.headers, Astro.cookies);
 
 let sectors: Database["public"]["Tables"]["sectors"]["Row"][] = [];
 let operatorData: Database["public"]["Tables"]["operators"]["Row"] | null = null;
+let reservations: Database["public"]["Tables"]["reservations"]["Row"][] = [];
 
 // Fetch operator details and sectors
 if (user && role === "operator" && supabase && operatorSectors && operatorSectors.length > 0) {
@@ -23,6 +25,17 @@ if (user && role === "operator" && supabase && operatorSectors && operatorSector
     .order("created_at", { ascending: true });
 
   sectors = sectorsData ?? [];
+
+  // Fetch operator's reservations
+  if (operatorData) {
+    const { data: reservationsData } = await supabase
+      .from("reservations")
+      .select("*")
+      .eq("created_by_operator_id", operatorData.id)
+      .order("created_at", { ascending: false });
+
+    reservations = reservationsData ?? [];
+  }
 }
 ---
 
@@ -52,5 +65,97 @@ if (user && role === "operator" && supabase && operatorSectors && operatorSector
         <p class="text-yellow-200">You are not assigned to any sectors yet. Contact an administrator.</p>
       </div>
     )}
+
+    {/* Create Reservation */}
+    {sectors.length > 0 && (
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="text-2xl font-semibold text-white">Create Reservation</h2>
+          <button
+            id="createReservationBtn"
+            type="button"
+            class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+          >
+            + New Reservation
+          </button>
+        </div>
+
+        <div id="reservationFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+          <h3 class="mb-4 text-xl font-semibold text-white">Reservation Details</h3>
+          <ReservationForm client:load sectors={sectors} />
+        </div>
+      </div>
+    )}
+
+    {/* Reservations List */}
+    {reservations.length > 0 && (
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+        <h2 class="mb-6 text-2xl font-semibold text-white">Your Reservations</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-white">
+            <thead class="border-b border-white/10 bg-white/10">
+              <tr>
+                <th class="px-6 py-3 text-left font-semibold">Customer</th>
+                <th class="px-6 py-3 text-left font-semibold">License Plate</th>
+                <th class="px-6 py-3 text-left font-semibold">Arrival</th>
+                <th class="px-6 py-3 text-left font-semibold">Departure</th>
+                <th class="px-6 py-3 text-right font-semibold">Price</th>
+                <th class="px-6 py-3 text-center font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reservations.map((res, index) => (
+                <tr
+                  key={res.id}
+                  class:list={`border-t border-white/10 ${
+                    index % 2 === 0 ? "bg-white/0" : "bg-white/5"
+                  }`}
+                >
+                  <td class="px-6 py-4 font-medium text-white">{res.customer_name}</td>
+                  <td class="px-6 py-4">{res.license_plate}</td>
+                  <td class="px-6 py-4">{new Date(res.arrival_at).toLocaleDateString()}</td>
+                  <td class="px-6 py-4">{new Date(res.departure_at).toLocaleDateString()}</td>
+                  <td class="px-6 py-4 text-right">
+                    <span class="font-mono">${res.price_total.toFixed(2)}</span>
+                    {res.price_override && (
+                      <span class="ml-2 inline-flex items-center rounded-full bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-400">
+                        Override
+                      </span>
+                    )}
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <span class="inline-flex items-center rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
+                      {res.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
   </div>
+
+  <script>
+    const createReservationBtn = document.getElementById("createReservationBtn");
+    const reservationFormContainer = document.getElementById("reservationFormContainer");
+
+    createReservationBtn?.addEventListener("click", () => {
+      reservationFormContainer?.classList.toggle("hidden");
+    });
+
+    // Listen for reservation created event
+    window.addEventListener("reservationCreated", () => {
+      reservationFormContainer?.classList.add("hidden");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    });
+
+    // Listen for cancel form event
+    window.addEventListener("cancelReservationForm", () => {
+      reservationFormContainer?.classList.add("hidden");
+    });
+  </script>
 </OperatorLayout>
