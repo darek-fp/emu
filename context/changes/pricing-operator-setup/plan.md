@@ -668,9 +668,9 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Manual
 
-- [ ] 4.5 Create pricing tier via UI, verify saved correctly
-- [ ] 4.6 Edit pricing tier, verify update and versioning (old tier preserved)
-- [ ] 4.7 Verify multiple tiers per sector handled (only one active)
+- [x] 4.5 Create pricing tier via UI, verify saved correctly
+- [x] 4.6 Edit pricing tier, verify update and versioning (old tier preserved)
+- [x] 4.7 Verify multiple tiers per sector handled (only one active)
 
 ### Phase 5: Admin Operator Management UI
 

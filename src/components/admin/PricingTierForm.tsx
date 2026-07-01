@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface DiscountStep {
   dayMin: number;
@@ -35,6 +35,42 @@ export function PricingTierForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const handleShowPricingForm = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { sectorId, tierId } = customEvent.detail;
+
+      if (sectorId) {
+        setSelectedSectorId(sectorId);
+        // Reset form for create
+        setBaseRate(100);
+        setFloor(50);
+        setDiscountSteps([]);
+        setErrors({});
+      }
+
+      if (tierId) {
+        // Load existing tier data
+        try {
+          const response = await fetch(`/api/admin/pricing/${tierId}`);
+          if (response.ok) {
+            const tierData = await response.json();
+            setSelectedSectorId(tierData.sector_id);
+            setBaseRate(tierData.base_daily_rate);
+            setFloor(tierData.daily_floor);
+            setDiscountSteps(tierData.discount_steps || []);
+            setErrors({});
+          }
+        } catch (err) {
+          console.error("Failed to load tier data:", err);
+        }
+      }
+    };
+
+    window.addEventListener("showPricingForm", handleShowPricingForm);
+    return () => window.removeEventListener("showPricingForm", handleShowPricingForm);
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -163,7 +199,7 @@ export function PricingTierForm({
         >
           <option value="">Select a sector</option>
           {sectors.map((s) => (
-            <option key={s.id} value={s.id} className="bg-gray-900">
+            <option key={s.id} value={s.id} className="bg-slate-900 text-white">
               {s.name}
             </option>
           ))}
@@ -292,15 +328,16 @@ export function PricingTierForm({
         >
           {isSubmitting ? "Saving..." : "Save Tier"}
         </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
-          >
-            Cancel
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            if (onCancel) onCancel();
+            window.dispatchEvent(new CustomEvent("cancelPricingForm"));
+          }}
+          className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   );

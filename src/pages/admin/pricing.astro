@@ -71,6 +71,24 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
 ---
 
 <AdminLayout title="Pricing Configuration">
+  <style>
+    /* Dark theme select styling for expanded dropdown */
+    select option {
+      background: #1f2937 !important;
+      color: white !important;
+    }
+    select option:checked {
+      background: linear-gradient(#3b82f6, #3b82f6) !important;
+      background-color: #3b82f6 !important;
+      color: white !important;
+    }
+    
+    /* Firefox specific */
+    select option:hover {
+      background: #374151 !important;
+      color: white !important;
+    }
+  </style>
   <div class="space-y-8">
     {
       error && (
@@ -150,6 +168,7 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
                         <button
                           class="editTierBtn text-blue-400 hover:text-blue-300"
                           data-sector-id={sector.id}
+                          data-tier-id={activeTier?.id}
                         >
                           {activeTier ? "Edit" : "Create"}
                         </button>
@@ -202,6 +221,10 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
       window.dispatchEvent(new CustomEvent("showPricingForm", { detail: { sectorId } }));
     }
 
+    function closeTierForm() {
+      tierFormContainer?.classList.add("hidden");
+    }
+
     createTierBtn?.addEventListener("click", () => {
       const firstSectorId = Array.from(editTierBtns)[0]?.getAttribute("data-sector-id");
       if (firstSectorId) {
@@ -212,10 +235,29 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
     editTierBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         const sectorId = (btn as HTMLElement).dataset.sectorId;
+        const tierId = (btn as HTMLElement).dataset.tierId;
         if (sectorId) {
-          showTierForm(sectorId, true);
+          showTierForm(sectorId, !!tierId);
+          // Dispatch event with tier ID if editing
+          if (tierId) {
+            window.dispatchEvent(new CustomEvent("showPricingForm", { detail: { sectorId, tierId } }));
+          } else {
+            window.dispatchEvent(new CustomEvent("showPricingForm", { detail: { sectorId } }));
+          }
         }
       });
+    });
+
+    // Listen for tierSaved event from PricingTierForm
+    window.addEventListener("tierSaved", () => {
+      closeTierForm();
+      // Reload page to show new/updated tier
+      window.location.reload();
+    });
+
+    // Listen for cancelPricingForm event from PricingTierForm
+    window.addEventListener("cancelPricingForm", () => {
+      closeTierForm();
     });
   </script>
 </AdminLayout>
