@@ -28,7 +28,7 @@ export function PricingTierForm({
   onCancel,
   initialTier,
 }: PricingTierFormProps) {
-  const [selectedSectorId, setSelectedSectorId] = useState(initialTier?.sectorId ?? defaultSectorId);
+  const [selectedSectorId, setSelectedSectorId] = useState(initialTier?.sectorId ?? defaultSectorId ?? sectors[0]?.id ?? "");
   const [baseRate, setBaseRate] = useState(initialTier?.baseRate ?? 100);
   const [floor, setFloor] = useState(initialTier?.floor ?? 50);
   const [discountSteps, setDiscountSteps] = useState<DiscountStep[]>(initialTier?.discountSteps ?? []);

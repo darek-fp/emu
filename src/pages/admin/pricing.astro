@@ -170,7 +170,7 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
 
       <PricingTierForm
         client:load
-        sectorId=""
+        sectorId={sectors[0]?.id || ""}
         sectors={sectors}
         onCancel={() => {
           document.getElementById("tierFormContainer")?.classList.add("hidden");
@@ -183,6 +183,7 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
     const createTierBtn = document.getElementById("createTierBtn");
     const tierFormContainer = document.getElementById("tierFormContainer");
     const editTierBtns = document.querySelectorAll(".editTierBtn");
+    let selectedSectorId: string | null = null;
 
     function showTierForm(sectorId: string, isEdit: boolean = false) {
       const title = document.getElementById("tierFormTitle");
@@ -194,11 +195,18 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
           ? "Update pricing configuration for this sector."
           : "Configure base rate, floor, and discount steps.";
 
+      selectedSectorId = sectorId;
       tierFormContainer?.classList.remove("hidden");
+      
+      // Dispatch event to update the form's sectorId prop
+      window.dispatchEvent(new CustomEvent("showPricingForm", { detail: { sectorId } }));
     }
 
     createTierBtn?.addEventListener("click", () => {
-      showTierForm("", false);
+      const firstSectorId = Array.from(editTierBtns)[0]?.getAttribute("data-sector-id");
+      if (firstSectorId) {
+        showTierForm(firstSectorId, false);
+      }
     });
 
     editTierBtns.forEach((btn) => {
