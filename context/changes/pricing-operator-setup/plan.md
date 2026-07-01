@@ -712,7 +712,7 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Manual
 
-- [ ] 6.5 Create reservation, verify calculated price matches expectation
-- [ ] 6.6 Override price, verify flag and audit trail
-- [ ] 6.7 Update pricing tier, create new reservation, verify new price; old reservation unchanged
-- [ ] 6.8 End-to-end: admin setup tier → operator creates reservation → operator deactivated → verify audit trail
+- [x] 6.5 Create reservation, verify calculated price matches expectation
+- [x] 6.6 Override price, verify flag and audit trail
+- [x] 6.7 Update pricing tier, create new reservation, verify new price; old reservation unchanged
+- [x] 6.8 End-to-end: admin setup tier → operator creates reservation → operator deactivated → verify audit trail
