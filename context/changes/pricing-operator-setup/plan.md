@@ -705,9 +705,9 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Automated
 
-- [ ] 6.1 Update reservation creation endpoint to calculate price
-- [ ] 6.2 Capture pricing_tier_id and created_by_operator_id on save
-- [ ] 6.3 Implement price override with audit flag
+- [x] 6.1 Update reservation creation endpoint to calculate price — acfbd534
+- [x] 6.2 Capture pricing_tier_id and created_by_operator_id on save — acfbd534
+- [x] 6.3 Implement price override with audit flag — acfbd534
 - [ ] 6.4 Unit tests: price immutability, tier capture
 
 #### Manual

@@ -138,24 +138,30 @@ if (user && role === "operator" && supabase && operatorSectors && operatorSector
   </div>
 
   <script>
-    const createReservationBtn = document.getElementById("createReservationBtn");
-    const reservationFormContainer = document.getElementById("reservationFormContainer");
+    document.addEventListener('DOMContentLoaded', () => {
+      const createReservationBtn = document.getElementById("createReservationBtn");
+      const reservationFormContainer = document.getElementById("reservationFormContainer");
 
-    createReservationBtn?.addEventListener("click", () => {
-      reservationFormContainer?.classList.toggle("hidden");
-    });
+      if (createReservationBtn) {
+        createReservationBtn.addEventListener("click", () => {
+          // Ensure the form is reset to initial values each time it's opened
+          window.dispatchEvent(new CustomEvent("resetReservationForm"));
+          reservationFormContainer?.classList.toggle("hidden");
+        });
+      }
 
-    // Listen for reservation created event
-    window.addEventListener("reservationCreated", () => {
-      reservationFormContainer?.classList.add("hidden");
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    });
+      // Listen for reservation created event
+      window.addEventListener("reservationCreated", () => {
+        reservationFormContainer?.classList.add("hidden");
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      });
 
-    // Listen for cancel form event
-    window.addEventListener("cancelReservationForm", () => {
-      reservationFormContainer?.classList.add("hidden");
+      // Listen for cancel form event
+      window.addEventListener("cancelReservationForm", () => {
+        reservationFormContainer?.classList.add("hidden");
+      });
     });
   </script>
 </OperatorLayout>

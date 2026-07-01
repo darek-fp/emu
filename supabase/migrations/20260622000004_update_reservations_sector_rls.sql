@@ -4,15 +4,16 @@
 CREATE OR REPLACE FUNCTION is_admin()
 RETURNS boolean AS $$
 BEGIN
-  RETURN (auth.jwt() ->> 'app_metadata' ->> 'role' = 'admin');
+  -- auth.jwt() may be returned as text or json; cast to json to safely use JSON operators
+  RETURN ((auth.jwt()::json -> 'app_metadata' ->> 'role') = 'admin');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create helper function to check if current user (operator) has access to a sector
-CREATE OR REPLACE FUNCTION operator_has_sector_access(sector_id UUID)
+CREATE OR REPLACE FUNCTION operator_has_sector_access(p_sector_id UUID)
 RETURNS boolean AS $$
 DECLARE
-  operator_id UUID;
+  op_id UUID;
 BEGIN
   -- If user is admin, allow
   IF is_admin() THEN
@@ -20,17 +21,17 @@ BEGIN
   END IF;
 
   -- Get the operator record for current user
-  SELECT id INTO operator_id FROM public.operators WHERE user_id = auth.uid() AND deactivated_at IS NULL;
+  SELECT id INTO op_id FROM public.operators WHERE user_id = auth.uid() AND deactivated_at IS NULL;
   
   -- If no active operator record, deny
-  IF operator_id IS NULL THEN
+  IF op_id IS NULL THEN
     RETURN false;
   END IF;
 
   -- Check if operator has access to this sector
   RETURN EXISTS (
     SELECT 1 FROM public.operator_sector_assignments
-    WHERE operator_id = operator_id AND sector_id = sector_id
+    WHERE operator_id = op_id AND sector_id = p_sector_id
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

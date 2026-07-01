@@ -74,7 +74,7 @@ export const POST: APIRoute = async (context) => {
       .from("pricing_tiers")
       .select("*")
       .eq("sector_id", sectorId)
-      .eq("ended_at", null)
+      .is("ended_at", null)
       .single();
 
     if (tierError || !pricingTier) {
@@ -123,8 +123,11 @@ export const POST: APIRoute = async (context) => {
 
     if (createError || !reservation) {
       console.error("Reservation creation error:", createError);
+      // Return more detailed error during development to help debugging
+      const errMessage = createError?.message ?? (createError ? JSON.stringify(createError) : "Unknown DB error");
+      const errDetails = (createError as any)?.details ?? undefined;
       return new Response(
-        JSON.stringify({ error: "Failed to create reservation" }),
+        JSON.stringify({ error: "Failed to create reservation", details: errMessage, info: errDetails }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }

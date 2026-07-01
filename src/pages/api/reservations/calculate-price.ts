@@ -34,16 +34,25 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Fetch active pricing tier for the sector
+    console.log(`[calculate-price] Fetching tier for sector: ${sectorId}`);
     const { data: pricingTier, error: tierError } = await supabase
       .from("pricing_tiers")
       .select("*")
       .eq("sector_id", sectorId)
-      .eq("ended_at", null)
+      .is("ended_at", null)
       .single();
+
+    if (tierError) {
+      console.error(`[calculate-price] Tier fetch error:`, tierError);
+    }
+    console.log(`[calculate-price] Tier result:`, { found: !!pricingTier, tier: pricingTier });
 
     if (tierError || !pricingTier) {
       return new Response(
-        JSON.stringify({ error: "No active pricing tier for this sector" }),
+        JSON.stringify({ 
+          error: "No active pricing tier for this sector, but pricing is configured",
+          debug: { sectorId, tierError: tierError?.message }
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }

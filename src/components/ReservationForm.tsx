@@ -24,6 +24,28 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
 
+  // Reset form to initial state
+  const resetForm = () => {
+    setSelectedSectorId(sectors[0]?.id || "");
+    setArrivalAt("");
+    setDepartureAt("");
+    setCustomerName("");
+    setLicensePlate("");
+    setPriceOverride(null);
+    setUseOverride(false);
+    setCalculatedPrice(null);
+    setErrors({});
+    setIsSubmitting(false);
+    setIsLoadingPrice(false);
+  };
+
+  // Listen for global reset event so parent can clear the form before showing
+  useEffect(() => {
+    const handler = () => resetForm();
+    window.addEventListener("resetReservationForm", handler);
+    return () => window.removeEventListener("resetReservationForm", handler);
+  }, [sectors]);
+
   // Calculate price whenever sector, arrival, or departure changes
   useEffect(() => {
     if (!selectedSectorId || !arrivalAt || !departureAt) {
