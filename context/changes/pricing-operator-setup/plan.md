@@ -695,11 +695,11 @@ Integrate pricing calculation into the reservation creation flow. Capture pricin
 
 #### Manual
 
-- [ ] 5.7 Create operator via UI (email + password + sectors), verify immediate login works
-- [ ] 5.8 Log in as newly created operator with provided password
-- [ ] 5.9 Verify operator sees only assigned sectors in dashboard
-- [ ] 5.10 Deactivate operator via UI, verify status update in list
-- [ ] 5.11 Test operator sector restriction: try to create reservation in unassigned sector (should be rejected)
+- [x] 5.7 Create operator via UI (email + password + sectors), verify immediate login works — 767681f3
+- [x] 5.8 Log in as newly created operator with provided password — 767681f3
+- [x] 5.9 Verify operator sees only assigned sectors in dashboard — 767681f3
+- [x] 5.10 Deactivate operator via UI, verify status update in list — 767681f3
+- [x] 5.11 Test operator sector restriction: try to create reservation in unassigned sector (should be rejected) — 767681f3
 
 ### Phase 6: Reservation Integration & Price Calculation
 
