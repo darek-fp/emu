@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { calculatePrice } from "@/lib/services/PricingService";
@@ -22,10 +23,9 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // Validate request body with zod
-    import('zod');
-    const z = (await import('zod')).z;
+    const { z } = await import("zod");
     const reservationSchema = z.object({
-      sectorId: z.string().uuid(),
+      sectorId: z.uuid(),
       arrivalAt: z.string(),
       departureAt: z.string(),
       customerName: z.string().min(1),
@@ -33,59 +33,64 @@ export const POST: APIRoute = async (context) => {
       priceOverride: z.number().positive().optional(),
     });
 
-    const raw = await context.request.json();
-    const parse = reservationSchema.safeParse(raw);
-    if (!parse.success) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid request', details: parse.error.format() }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    const raw = (await context.request.json()) as unknown;
+    let parsed: z.infer<typeof reservationSchema>;
+    try {
+      parsed = reservationSchema.parse(raw);
+    } catch (_e) {
+      return new Response(JSON.stringify({ error: "Invalid request" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    const { sectorId, arrivalAt, departureAt, customerName, licensePlate, priceOverride } = parse.data;
+    const { sectorId, arrivalAt, departureAt, customerName, licensePlate, priceOverride } = parsed;
 
     // Get operator record
-    const { data: operator, error: operatorError } = await supabase
-      .from("operators")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+    const opResp = (await supabase.from("operators").select("id").eq("user_id", user.id).single()) as unknown as {
+      data: { id: string } | null;
+      error?: unknown;
+    };
+    const operator = opResp.data;
 
-    if (operatorError || !operator) {
-      return new Response(
-        JSON.stringify({ error: "Operator not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
+    if (!operator) {
+      return new Response(JSON.stringify({ error: "Operator not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Verify operator has access to this sector
-    const { data: assignment, error: accessError } = await supabase
+    const assignResp = (await supabase
       .from("operator_sector_assignments")
       .select("sector_id")
       .eq("operator_id", operator.id)
       .eq("sector_id", sectorId)
-      .single();
+      .single()) as unknown as { data: { sector_id: string } | null; error?: unknown };
+    const assignment = assignResp.data;
 
-    if (accessError || !assignment) {
-      return new Response(
-        JSON.stringify({ error: "Access denied to this sector" }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
+    if (!assignment) {
+      return new Response(JSON.stringify({ error: "Access denied to this sector" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Fetch active pricing tier for the sector
-    const { data: pricingTier, error: tierError } = await supabase
+    type PricingTierRow = Database["public"]["Tables"]["pricing_tiers"]["Row"];
+    const tierResp = (await supabase
       .from("pricing_tiers")
       .select("*")
       .eq("sector_id", sectorId)
       .is("ended_at", null)
-      .single();
+      .single()) as unknown as { data: PricingTierRow | null; error?: unknown };
+    const pricingTier = tierResp.data;
 
-    if (tierError || !pricingTier) {
-      return new Response(
-        JSON.stringify({ error: "No active pricing tier for this sector" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    if (!pricingTier) {
+      return new Response(JSON.stringify({ error: "No active pricing tier for this sector" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Calculate price
@@ -93,10 +98,10 @@ export const POST: APIRoute = async (context) => {
     const departure = new Date(departureAt);
 
     if (departure <= arrival) {
-      return new Response(
-        JSON.stringify({ error: "Departure must be after arrival" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Departure must be after arrival" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const result = calculatePrice(arrival, departure, pricingTier);
@@ -119,35 +124,35 @@ export const POST: APIRoute = async (context) => {
       status: "confirmed",
     };
 
-    const { data: reservation, error: createError } = await supabase
-      .from("reservations")
-      .insert([reservationData])
-      .select()
-      .single();
+    type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
+    const insertResp = (await supabase.from("reservations").insert([reservationData]).select().single()) as unknown as {
+      data: ReservationRow | null;
+      error?: unknown;
+    };
 
-    if (createError || !reservation) {
-      console.error("Reservation creation error:", createError);
-      return new Response(
-        JSON.stringify({ error: "Failed to create reservation" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+    const reservation = insertResp.data;
+    if (!reservation) {
+      console.error("Reservation creation error:", insertResp.error);
+      return new Response(JSON.stringify({ error: "Failed to create reservation" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        reservation,
-        calculatedPrice,
-        priceOverride: priceOverride !== undefined ? true : false,
+        reservation_id: reservation.id,
+        price_total: reservation.price_total,
       }),
-      { status: 201, headers: { "Content-Type": "application/json" } }
+      { status: 201, headers: { "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("Reservation creation error:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };
 
@@ -165,17 +170,13 @@ export const GET: APIRoute = async (context) => {
   const supabase = createClient(context.request.headers, context.cookies);
 
   try {
-    const { data: operator } = await supabase
-      .from("operators")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+    const { data: operator } = await supabase.from("operators").select("id").eq("user_id", user.id).single();
 
     if (!operator) {
-      return new Response(
-        JSON.stringify({ error: "Operator not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Operator not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Get operator's reservations
@@ -186,10 +187,10 @@ export const GET: APIRoute = async (context) => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch reservations" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Failed to fetch reservations" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ reservations }), {
@@ -198,9 +199,9 @@ export const GET: APIRoute = async (context) => {
     });
   } catch (err) {
     console.error("Failed to fetch reservations:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

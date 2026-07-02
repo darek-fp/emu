@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { calculatePrice } from "@/lib/services/PricingService";
@@ -19,66 +20,69 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // Validate request body with zod
-    const z = (await import('zod')).z;
-    const schema = z.object({ sectorId: z.string().uuid(), arrivalAt: z.string(), departureAt: z.string() });
-    const raw = await context.request.json();
-    const parsed = schema.safeParse(raw);
-    if (!parsed.success) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid request', details: parsed.error.format() }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    const { z } = await import("zod");
+    const schema = z.object({ sectorId: z.uuid(), arrivalAt: z.string(), departureAt: z.string() });
+    const raw = (await context.request.json()) as unknown;
+    let parsed: z.infer<typeof schema>;
+    try {
+      parsed = schema.parse(raw);
+    } catch (_e) {
+      return new Response(JSON.stringify({ error: "Invalid request" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    const { sectorId, arrivalAt, departureAt } = parsed.data;
+    const { sectorId, arrivalAt, departureAt } = parsed;
 
     // Enforce operator access to the sector to avoid information leakage
-    const operatorSectors: string[] = (context.locals && (context.locals as any).operatorSectors) || [];
+    const operatorSectors: string[] = ((context.locals as any)?.operatorSectors ?? []) as string[];
     if (!operatorSectors.includes(sectorId)) {
-      return new Response(
-        JSON.stringify({ error: 'Access denied to this sector' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: "Access denied to this sector" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Fetch active pricing tier for the sector
-    const { data: pricingTier, error: tierError } = await supabase
-      .from('pricing_tiers')
-      .select('*')
-      .eq('sector_id', sectorId)
-      .is('ended_at', null)
-      .single();
+    type PricingTierRow = Record<string, unknown>;
+    const tierResp = (await supabase
+      .from("pricing_tiers")
+      .select("*")
+      .eq("sector_id", sectorId)
+      .is("ended_at", null)
+      .single()) as unknown as { data: PricingTierRow | null; error?: unknown };
+    const pricingTier = tierResp.data;
 
-    if (tierError || !pricingTier) {
-      console.error('Pricing tier fetch failed for sector', sectorId, tierError);
-      return new Response(
-        JSON.stringify({ error: 'No active pricing tier for this sector' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!pricingTier) {
+      return new Response(JSON.stringify({ error: "No active pricing tier for this sector" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const arrival = new Date(arrivalAt);
     const departure = new Date(departureAt);
 
     if (departure <= arrival) {
-      return new Response(
-        JSON.stringify({ error: "Departure must be after arrival" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Departure must be after arrival" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const result = calculatePrice(arrival, departure, pricingTier);
     const price = result.totalPrice;
 
-    return new Response(
-      JSON.stringify({ price, tierName: sectorId }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ price, breakdown: result.breakdown, pricing_tier_id: pricingTier.id }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("Price calculation error:", err);
-    return new Response(
-      JSON.stringify({ error: "Failed to calculate price" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Failed to calculate price" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

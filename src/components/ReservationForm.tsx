@@ -41,14 +41,19 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
 
   // Listen for global reset event so parent can clear the form before showing
   useEffect(() => {
-    const handler = () => resetForm();
+    const handler = () => {
+      resetForm();
+    };
     window.addEventListener("resetReservationForm", handler);
-    return () => window.removeEventListener("resetReservationForm", handler);
+    return () => {
+      window.removeEventListener("resetReservationForm", handler);
+    };
   }, [sectors]);
 
   // Calculate price whenever sector, arrival, or departure changes
   useEffect(() => {
     if (!selectedSectorId || !arrivalAt || !departureAt) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCalculatedPrice(null);
       return;
     }
@@ -76,8 +81,8 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
         });
 
         if (calcResponse.ok) {
-          const { price } = await calcResponse.json();
-          setCalculatedPrice(price);
+          const calcData = (await calcResponse.json()) as { price: number };
+          setCalculatedPrice(calcData.price);
         }
       } catch (err) {
         console.error("Failed to calculate price:", err);
@@ -86,7 +91,7 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
       }
     };
 
-    calculatePrice();
+    void calculatePrice();
   }, [selectedSectorId, arrivalAt, departureAt]);
 
   const validateForm = () => {
@@ -128,7 +133,7 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -182,8 +187,10 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
         <select
           id="sector"
           value={selectedSectorId}
-          onChange={(e) => setSelectedSectorId(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          onChange={(e) => {
+            setSelectedSectorId(e.target.value);
+          }}
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         >
           <option value="">Select a sector</option>
           {sectors.map((s) => (
@@ -204,8 +211,10 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
           id="customerName"
           type="text"
           value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          onChange={(e) => {
+            setCustomerName(e.target.value);
+          }}
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="Enter customer name"
         />
         {errors.customerName && <p className="mt-1 text-sm text-red-400">{errors.customerName}</p>}
@@ -220,8 +229,10 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
           id="licensePlate"
           type="text"
           value={licensePlate}
-          onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          onChange={(e) => {
+            setLicensePlate(e.target.value.toUpperCase());
+          }}
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="ABC-1234"
         />
         {errors.licensePlate && <p className="mt-1 text-sm text-red-400">{errors.licensePlate}</p>}
@@ -236,8 +247,10 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
           id="arrivalAt"
           type="date"
           value={arrivalAt}
-          onChange={(e) => setArrivalAt(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          onChange={(e) => {
+            setArrivalAt(e.target.value);
+          }}
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         />
         {errors.arrivalAt && <p className="mt-1 text-sm text-red-400">{errors.arrivalAt}</p>}
       </div>
@@ -251,8 +264,10 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
           id="departureAt"
           type="date"
           value={departureAt}
-          onChange={(e) => setDepartureAt(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          onChange={(e) => {
+            setDepartureAt(e.target.value);
+          }}
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         />
         {errors.departureAt && <p className="mt-1 text-sm text-red-400">{errors.departureAt}</p>}
         {errors.dateRange && <p className="mt-1 text-sm text-red-400">{errors.dateRange}</p>}
@@ -278,7 +293,9 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
             id="useOverride"
             type="checkbox"
             checked={useOverride}
-            onChange={(e) => setUseOverride(e.target.checked)}
+            onChange={(e) => {
+              setUseOverride(e.target.checked);
+            }}
             className="h-4 w-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500"
           />
           <label htmlFor="useOverride" className="text-sm font-medium text-white/80">
@@ -295,10 +312,12 @@ export function ReservationForm({ sectors, onCancel }: ReservationFormProps) {
               type="number"
               step="0.01"
               min="0"
-              value={priceOverride || ""}
-              onChange={(e) => setPriceOverride(e.target.value ? parseFloat(e.target.value) : null)}
+              value={priceOverride ?? ""}
+              onChange={(e) => {
+                setPriceOverride(e.target.value ? parseFloat(e.target.value) : null);
+              }}
               placeholder={calculatedPrice?.toFixed(2)}
-              className="block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
             {errors.priceOverride && <p className="mt-1 text-sm text-red-400">{errors.priceOverride}</p>}
           </>
