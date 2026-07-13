@@ -197,33 +197,35 @@ Add unit tests for pricingService edge cases and API integration tests for reser
 ### Phase 1: Server API & Validation
 
 #### Automated
-- [ ] 1.1 npm run lint/build
-- [ ] 1.2 Integration tests for calculate-price & reservations
+- [x] 1.1 npm run lint/build — f96245c2
+- [ ] 1.2 Integration tests for calculate-price & reservations (REMAINING)
 
 #### Manual
-- [ ] 1.3 UI verify sanitized errors and success
+- [x] 1.3 UI verify sanitized errors and success — f96245c2
 
 ### Phase 2: Database Migration & RLS
 
 #### Automated
-- [ ] 2.1 Migration applies on local dev
+- [⊗] 2.1 DEFERRED: Migration applies on local dev — signup.ts still uses temp_password_hash and temp_password_expires_at; migration blocked until signup refactored or operator creation flow changed
 
 #### Manual
-- [ ] 2.2 RLS manual verification across sectors
+- [⊗] 2.2 DEFERRED: RLS manual verification across sectors
+
+**Decision**: Keep temp_password fields indefinitely (active in signup flow).
 
 ### Phase 3: UI Changes
 
 #### Automated
-- [ ] 3.1 E2E test: open form twice, create reservation
+- [ ] 3.1 E2E test: open form twice, create reservation (REMAINING)
 
 #### Manual
-- [ ] 3.2 Manual UI verification for empty form
+- [x] 3.2 Manual UI verification for empty form — f96245c2 + verified 2026-07-13 @ 16:05
 
 ### Phase 4: Tests & CI
 
 #### Automated
-- [ ] 4.1 Unit tests for pricingService
-- [ ] 4.2 Integration tests pass in CI
+- [x] 4.1 Unit tests for pricingService — pricingService.test.ts with 20+ test cases
+- [ ] 4.2 Integration tests pass in CI (REMAINING)
 
 
 
