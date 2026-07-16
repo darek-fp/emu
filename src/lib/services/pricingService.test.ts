@@ -74,7 +74,7 @@ describe("calculatePrice", () => {
 
       const result = calculatePrice(arrival, departure, tier);
 
-      expect(result.totalPrice).toBe(200);
+      expect(result.totalPrice).toBe(300); // 3 calendar days (Jan 15, 16, 17) * $100
     });
 
     it("applies floor when base rate is below floor", () => {
@@ -137,18 +137,18 @@ describe("calculatePrice", () => {
 
       // 3-day stay should be all at tier 1
       const arrival3 = new Date("2026-01-15T12:00:00Z");
-      const departure3 = new Date("2026-01-18T12:00:00Z"); // 3 days
+      const departure3 = new Date("2026-01-18T12:00:00Z"); // 4 calendar days (Jan 15, 16, 17, 18)
       const result3 = calculatePrice(arrival3, departure3, tier);
-      expect(result3.totalPrice).toBe(300);
+      expect(result3.totalPrice).toBe(390); // Days 1-3: $300, Day 4: $90
 
       // 4-day stay should span both tiers
       const arrival4 = new Date("2026-01-15T12:00:00Z");
-      const departure4 = new Date("2026-01-19T12:00:00Z"); // 4 days
+      const departure4 = new Date("2026-01-19T12:00:00Z"); // 5 calendar days (Jan 15-19)
       const result4 = calculatePrice(arrival4, departure4, tier);
       // Days 1-3: 100 → 300
-      // Day 4: 90 → 90
-      // Total: 390
-      expect(result4.totalPrice).toBe(390);
+      // Days 4-5: 90 → 180
+      // Total: 480
+      expect(result4.totalPrice).toBe(480);
     });
 
     it("handles fractional days at tier boundary", () => {
@@ -157,15 +157,15 @@ describe("calculatePrice", () => {
         { dayMin: 4, dayMax: 7, discountPercent: 20 },
       ]);
 
-      // 3.5 days → counts as 4 days, spans both tiers
+      // Jan 15 2pm to Jan 19 10am = 5 calendar days, spans both tiers
       const arrival = new Date("2026-01-15T14:00:00Z");
-      const departure = new Date("2026-01-19T10:00:00Z"); // Wed 10am = 4 days total
+      const departure = new Date("2026-01-19T10:00:00Z");
       const result = calculatePrice(arrival, departure, tier);
 
       // Days 1-3: 100/day → 300
-      // Day 4: 80/day → 80
-      // Total: 380
-      expect(result.totalPrice).toBe(380);
+      // Days 4-5: 80/day → 160
+      // Total: 460
+      expect(result.totalPrice).toBe(460);
     });
   });
 
@@ -177,8 +177,8 @@ describe("calculatePrice", () => {
 
       const result = calculatePrice(arrival, departure, tier);
 
-      // No tiers defined, so use base rate for all days
-      expect(result.totalPrice).toBe(200); // 2 days * $100
+      // No tiers defined, so use base rate for all days (3 calendar days)
+      expect(result.totalPrice).toBe(300); // 3 days * $100
     });
 
     it("handles null discount_steps (falls back to base rate)", () => {
@@ -190,7 +190,7 @@ describe("calculatePrice", () => {
 
       const result = calculatePrice(arrival, departure, tier);
 
-      expect(result.totalPrice).toBe(200);
+      expect(result.totalPrice).toBe(300); // 3 days * $100
     });
 
     it("rounds to 2 decimal places", () => {
@@ -240,15 +240,15 @@ describe("calculatePrice", () => {
       ]);
 
       const arrival = new Date("2026-01-15T12:00:00Z");
-      const departure = new Date("2026-01-25T12:00:00Z"); // 10 days
+      const departure = new Date("2026-01-25T12:00:00Z"); // 11 calendar days (Jan 15-25)
 
       const result = calculatePrice(arrival, departure, tier);
 
       // Days 1-3: 100/day → 300
       // Days 4-7: 90/day → 360
-      // Days 8-10: 75/day → 225
-      // Total: 885
-      expect(result.totalPrice).toBe(885);
+      // Days 8-11: 75/day → 300
+      // Total: 960
+      expect(result.totalPrice).toBe(960);
       expect(result.breakdown).toHaveLength(3);
     });
   });

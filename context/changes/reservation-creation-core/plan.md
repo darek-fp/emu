@@ -198,7 +198,7 @@ Add unit tests for pricingService edge cases and API integration tests for reser
 
 #### Automated
 - [x] 1.1 npm run lint/build — f96245c2
-- [ ] 1.2 Integration tests for calculate-price & reservations (REMAINING)
+- [x] 1.2 Integration tests for calculate-price & reservations
 
 #### Manual
 - [x] 1.3 UI verify sanitized errors and success — f96245c2
@@ -216,7 +216,7 @@ Add unit tests for pricingService edge cases and API integration tests for reser
 ### Phase 3: UI Changes
 
 #### Automated
-- [ ] 3.1 E2E test: open form twice, create reservation (REMAINING)
+- [x] 3.1 E2E test: open form twice, create reservation
 
 #### Manual
 - [x] 3.2 Manual UI verification for empty form — f96245c2 + verified 2026-07-13 @ 16:05
@@ -225,7 +225,7 @@ Add unit tests for pricingService edge cases and API integration tests for reser
 
 #### Automated
 - [x] 4.1 Unit tests for pricingService — pricingService.test.ts with 20+ test cases
-- [ ] 4.2 Integration tests pass in CI (REMAINING)
+- [x] 4.2 Integration tests pass in CI
 
 
 

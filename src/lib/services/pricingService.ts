@@ -194,9 +194,9 @@ export function calculateFractionalDays(arrival: Date, departure: Date): number 
   const arrivalUTC = new Date(Date.UTC(arrival.getUTCFullYear(), arrival.getUTCMonth(), arrival.getUTCDate()));
   const departureUTC = new Date(Date.UTC(departure.getUTCFullYear(), departure.getUTCMonth(), departure.getUTCDate()));
 
-  // If departure is on a different date, count it as an additional day
-  // If departure is on the same date, count it as 1 day
-  const daysDiff = Math.ceil((departureUTC.getTime() - arrivalUTC.getTime()) / (1000 * 60 * 60 * 24));
+  // Count calendar days spanned (inclusive of both start and end dates)
+  // e.g., Mon to Tue = 2 days, Mon to Mon = 1 day, Mon to Wed = 3 days
+  const daysDiff = Math.floor((departureUTC.getTime() - arrivalUTC.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-  return Math.max(1, daysDiff);
+  return daysDiff;
 }

@@ -1,9 +1,9 @@
 ---
 change_id: reservation-creation-core
 title: Reservation creation core
-status: new
+status: implementing
 created: 2026-07-01
-updated: 2026-07-01
+updated: 2026-07-13
 archived_at: null
 ---
 
