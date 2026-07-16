@@ -429,7 +429,6 @@ describe('Handler-level integration', () => {
     const calcApi = await import('../../src/pages/api/reservations/calculate-price');
     const res = await (calcApi.POST as any)(mockContext);
     const raw = await res.text();
-    console.log('calculate-price raw response:', res.status, raw);
     expect(res.status).toBe(200);
     const body = JSON.parse(raw);
     expect(body).toHaveProperty('price');
@@ -445,7 +444,6 @@ describe('Handler-level integration', () => {
     const reservationsApi = await import('../../src/pages/api/reservations');
     const res = await (reservationsApi.POST as any)(mockContext);
     const rawRes = await res.text();
-    console.log('reservations POST raw response:', res.status, rawRes);
     expect(res.status).toBe(201);
     const body = JSON.parse(rawRes);
     expect(body).toHaveProperty('reservation_id');
