@@ -370,3 +370,84 @@ describe('Reservation API Endpoints', () => {
     });
   });
 });
+
+// Handler integration tests: set up mock for @/lib/supabase before dynamically importing handlers
+
+function makeMockSupabase(pricingTierData: any = null, insertResult: any = null, operatorId: string = 'op-1') {
+  return {
+    from: (table: string) => {
+      const t = table;
+      const singleResult = async () => {
+        if (t === 'operators') return { data: { id: operatorId }, error: null };
+        if (t === 'operator_sector_assignments') return { data: { sector_id: 'sector-a-uuid' }, error: null };
+        if (t === 'pricing_tiers') return { data: pricingTierData, error: null };
+        if (t === 'reservations') return { data: insertResult, error: null };
+        return { data: null, error: null };
+      };
+
+      const selectChain = () => {
+        const chain: any = {
+          eq: (_col: string, _val: unknown) => chain,
+          is: (_col2: string, _val2: unknown) => chain,
+          single: singleResult,
+          select: () => chain,
+          order: (_col: string, _opts: any) => chain,
+        };
+        return chain;
+      };
+
+      const insertChain = (_payload: any[]) => ({ select: () => ({ single: singleResult }), single: singleResult });
+
+      return {
+        select: (_cols: string) => selectChain(),
+        eq: (_col: string, _val: unknown) => selectChain().eq(_col, _val),
+        insert: insertChain,
+        order: (_col: string, _opts: any) => selectChain().order(_col, _opts),
+      };
+    },
+  };
+}
+
+// Mock the supabase client used by route handlers
+vi.mock('@/lib/supabase', () => ({
+  createClient: (_headers: any, _cookies: any) => makeMockSupabase({ id: 'tier-1', sector_id: 'sector-a-uuid', base_daily_rate: 100, daily_floor: 50, discount_steps: [] }, { id: 'res-1', price_total: 100 }),
+}));
+
+vi.mock('@/lib/services/PricingService', () => ({
+  calculatePrice: (arrival: Date, departure: Date, tier: any) => ({ totalPrice: 100, breakdown: { days: 1, base: 100 }, pricing_tier_id: tier?.id ?? 'tier-1' }),
+}));
+
+
+describe('Handler-level integration', () => {
+  it('calculate-price POST returns 200 with price', async () => {
+    const mockContext: any = {
+      locals: { user: { id: 'user-1' }, role: 'operator' },
+      request: { headers: new Headers(), json: async () => ({ sectorId: '3fa85f64-5717-4562-b3fc-2c963f66afa6', arrivalAt: '2026-07-20T10:00:00Z', departureAt: '2026-07-21T10:00:00Z' }) },
+      cookies: {},
+    };
+
+    const calcApi = await import('../../src/pages/api/reservations/calculate-price');
+    const res = await (calcApi.POST as any)(mockContext);
+    const raw = await res.text();
+    console.log('calculate-price raw response:', res.status, raw);
+    expect(res.status).toBe(200);
+    const body = JSON.parse(raw);
+    expect(body).toHaveProperty('price');
+  });
+
+  it('reservations POST returns 201 on success', async () => {
+    const mockContext: any = {
+      locals: { user: { id: 'user-1' }, role: 'operator' },
+      request: { headers: new Headers(), json: async () => ({ sectorId: '3fa85f64-5717-4562-b3fc-2c963f66afa6', arrivalAt: '2026-07-20T10:00:00Z', departureAt: '2026-07-21T10:00:00Z', customerName: 'John', licensePlate: 'ABC123' }) },
+      cookies: {},
+    };
+
+    const reservationsApi = await import('../../src/pages/api/reservations');
+    const res = await (reservationsApi.POST as any)(mockContext);
+    const rawRes = await res.text();
+    console.log('reservations POST raw response:', res.status, rawRes);
+    expect(res.status).toBe(201);
+    const body = JSON.parse(rawRes);
+    expect(body).toHaveProperty('reservation_id');
+  });
+});
