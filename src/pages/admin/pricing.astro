@@ -82,7 +82,7 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
       background-color: #3b82f6 !important;
       color: white !important;
     }
-    
+
     /* Firefox specific */
     select option:hover {
       background: #374151 !important;
@@ -101,6 +101,20 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
     <div>
       <h1 class="mb-2 text-3xl font-bold text-white">Pricing Configuration</h1>
       <p class="text-white/70">Manage pricing tiers per sector. Base rates, discount steps, and floors.</p>
+    </div>
+
+    <div id="tierFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-xl font-semibold text-white" id="tierFormTitle">Create Pricing Tier</h2>
+      <p class="mb-4 text-white/70" id="tierFormDescription">Configure base rate, floor, and discount steps.</p>
+
+      <PricingTierForm
+        client:load
+        sectorId={sectors[0]?.id || ""}
+        sectors={sectors}
+        onCancel={() => {
+          document.getElementById("tierFormContainer")?.classList.add("hidden");
+        }}
+      />
     </div>
 
     <div class="rounded-lg border border-white/10 bg-white/5 p-6">
@@ -140,9 +154,7 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
                   return (
                     <tr
                       key={sector.id}
-                      class:list={`border-t border-white/10 ${
-                        index % 2 === 0 ? "bg-white/0" : "bg-white/5"
-                      }`}
+                      class:list={`border-t border-white/10 ${index % 2 === 0 ? "bg-white/0" : "bg-white/5"}`}
                     >
                       <td class="px-6 py-4 font-medium text-white">{sector.name}</td>
                       <td class="px-6 py-4 text-right">{activeTier ? `$${activeTier.base_daily_rate ?? 0}` : "-"}</td>
@@ -163,7 +175,9 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
                           </span>
                         )}
                       </td>
-                      <td class="px-6 py-4 text-right">{new Date(activeTier?.created_at || new Date()).toLocaleDateString()}</td>
+                      <td class="px-6 py-4 text-right">
+                        {new Date(activeTier?.created_at || new Date()).toLocaleDateString()}
+                      </td>
                       <td class="px-6 py-4 text-right">
                         <button
                           class="editTierBtn text-blue-400 hover:text-blue-300"
@@ -182,20 +196,6 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
         )
       }
     </div>
-
-    <div id="tierFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
-      <h2 class="mb-4 text-xl font-semibold text-white" id="tierFormTitle">Create Pricing Tier</h2>
-      <p class="mb-4 text-white/70" id="tierFormDescription">Configure base rate, floor, and discount steps.</p>
-
-      <PricingTierForm
-        client:load
-        sectorId={sectors[0]?.id || ""}
-        sectors={sectors}
-        onCancel={() => {
-          document.getElementById("tierFormContainer")?.classList.add("hidden");
-        }}
-      />
-    </div>
   </div>
 
   <script>
@@ -203,6 +203,10 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
     const tierFormContainer = document.getElementById("tierFormContainer");
     const editTierBtns = document.querySelectorAll(".editTierBtn");
     let selectedSectorId: string | null = null;
+
+    const scrollFormIntoView = () => {
+      tierFormContainer?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
     function showTierForm(sectorId: string, isEdit: boolean = false) {
       const title = document.getElementById("tierFormTitle");
@@ -216,7 +220,8 @@ const sectorMap = new Map(sectors.map((s) => [s.id, s.name]));
 
       selectedSectorId = sectorId;
       tierFormContainer?.classList.remove("hidden");
-      
+      scrollFormIntoView();
+
       // Dispatch event to update the form's sectorId prop
       window.dispatchEvent(new CustomEvent("showPricingForm", { detail: { sectorId } }));
     }

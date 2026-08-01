@@ -45,65 +45,6 @@ try {
       <p class="text-white/70">Manage sectors and parking spot counts for your lot.</p>
     </div>
 
-    <div class="rounded-lg border border-white/10 bg-white/5 p-6">
-      <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-xl font-semibold text-white">Current Structure</h2>
-        <button
-          id="addNewBtn"
-          type="button"
-          class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-        >
-          + Add Sector
-        </button>
-      </div>
-      {
-        sectors.length === 0 ? (
-          <div class="py-8 text-center">
-            <p class="text-white/70">No sectors configured yet.</p>
-          </div>
-        ) : (
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm text-white">
-              <thead class="border-b border-white/10 bg-white/10">
-                <tr>
-                  <th class="px-6 py-3 text-left font-semibold">Sector Name</th>
-                  <th class="px-6 py-3 text-right font-semibold">Spot Count</th>
-                  <th class="px-6 py-3 text-right font-semibold">Created</th>
-                  <th class="px-6 py-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sectors.map((sector, index) => (
-                  <tr
-                    key={sector.id}
-                    class:list={`border-t border-white/10 ${
-                      index % 2 === 0 ? "bg-white/0" : "bg-white/5"
-                    } transition-colors hover:bg-white/10`}
-                  >
-                    <td class="px-6 py-4">{sector.name}</td>
-                    <td class="px-6 py-4 text-right font-mono">{sector.spot_count}</td>
-                    <td class="px-6 py-4 text-right text-white/60">
-                      {new Date(sector.created_at).toLocaleDateString()}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <button
-                        class="editBtn rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                        data-sector-id={sector.id}
-                        data-sector-name={sector.name}
-                        data-sector-count={sector.spot_count}
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      }
-    </div>
-
     <div id="formContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
       <h2 class="mb-4 text-xl font-semibold text-white" id="formTitle">Add New Sector</h2>
       <p class="mb-4 text-white/70" id="formDescription">Create a new parking sector.</p>
@@ -178,6 +119,65 @@ try {
         </div>
       </div>
     </div>
+
+    <div class="rounded-lg border border-white/10 bg-white/5 p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-white">Current Structure</h2>
+        <button
+          id="addNewBtn"
+          type="button"
+          class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+        >
+          + Add Sector
+        </button>
+      </div>
+      {
+        sectors.length === 0 ? (
+          <div class="py-8 text-center">
+            <p class="text-white/70">No sectors configured yet.</p>
+          </div>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-white">
+              <thead class="border-b border-white/10 bg-white/10">
+                <tr>
+                  <th class="px-6 py-3 text-left font-semibold">Sector Name</th>
+                  <th class="px-6 py-3 text-right font-semibold">Spot Count</th>
+                  <th class="px-6 py-3 text-right font-semibold">Created</th>
+                  <th class="px-6 py-3 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sectors.map((sector, index) => (
+                  <tr
+                    key={sector.id}
+                    class:list={`border-t border-white/10 ${
+                      index % 2 === 0 ? "bg-white/0" : "bg-white/5"
+                    } transition-colors hover:bg-white/10`}
+                  >
+                    <td class="px-6 py-4">{sector.name}</td>
+                    <td class="px-6 py-4 text-right font-mono">{sector.spot_count}</td>
+                    <td class="px-6 py-4 text-right text-white/60">
+                      {new Date(sector.created_at).toLocaleDateString()}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <button
+                        class="editBtn rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                        data-sector-id={sector.id}
+                        data-sector-name={sector.name}
+                        data-sector-count={sector.spot_count}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </div>
   </div>
 
   <script>
@@ -198,6 +198,10 @@ try {
 
     let editingMode: "add" | "edit" | null = null;
     let editingSectorId: string | null = null;
+
+    const scrollFormIntoView = () => {
+      formContainer?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
     const showForm = (mode: "add" | "edit", sectorId?: string) => {
       editingMode = mode;
@@ -229,6 +233,7 @@ try {
       }
 
       formContainer?.classList.remove("hidden");
+      scrollFormIntoView();
       nameInput.focus();
     };
 

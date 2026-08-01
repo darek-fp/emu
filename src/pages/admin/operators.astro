@@ -103,6 +103,19 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
       <p class="text-white/70">Manage operators and their assigned sectors.</p>
     </div>
 
+    <div id="formContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-xl font-semibold text-white" id="formTitle">Add New Operator</h2>
+      <p class="mb-4 text-white/70" id="formDescription">Create a new operator and assign sectors.</p>
+
+      <OperatorForm client:load sectors={sectors} />
+    </div>
+
+    <div id="editFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-xl font-semibold text-white">Edit Operator Sectors</h2>
+
+      <OperatorSectorEditor client:load sectors={sectors} />
+    </div>
+
     <div class="rounded-lg border border-white/10 bg-white/5 p-6">
       <div class="mb-4 flex items-center justify-between">
         <h2 class="text-xl font-semibold text-white">Operators</h2>
@@ -110,7 +123,7 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
           id="addNewBtn"
           type="button"
           class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-lg transition-colors hover:bg-green-700"
-          onclick="document.getElementById('formContainer').classList.remove('hidden'); document.getElementById('editFormContainer').classList.add('hidden');"
+          onclick="document.getElementById('formContainer').classList.remove('hidden'); document.getElementById('editFormContainer').classList.add('hidden'); document.getElementById('formContainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"
         >
           + Add Operator
         </button>
@@ -159,10 +172,11 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
                               const operatorEmail = btn.getAttribute('data-operator-email');
                               const sectorStr = btn.getAttribute('data-operator-sectors');
                               const sectorIds = sectorStr ? JSON.parse(sectorStr) : [];
-                              
+                               
                               document.getElementById('editFormContainer').classList.remove('hidden');
                               document.getElementById('formContainer').classList.add('hidden');
-                              
+                              document.getElementById('editFormContainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                               
                               window.dispatchEvent(new CustomEvent('editOperator', {
                                 detail: {
                                   operatorId,
@@ -232,19 +246,6 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
         </div>
       )
     }
-
-    <div id="formContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
-      <h2 class="mb-4 text-xl font-semibold text-white" id="formTitle">Add New Operator</h2>
-      <p class="mb-4 text-white/70" id="formDescription">Create a new operator and assign sectors.</p>
-
-      <OperatorForm client:load sectors={sectors} />
-    </div>
-
-    <div id="editFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
-      <h2 class="mb-4 text-xl font-semibold text-white">Edit Operator Sectors</h2>
-
-      <OperatorSectorEditor client:load sectors={sectors} />
-    </div>
   </div>
 
   <script>
