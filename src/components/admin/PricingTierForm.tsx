@@ -195,9 +195,9 @@ export function PricingTierForm({
           onChange={(e) => {
             setSelectedSectorId(e.target.value);
           }}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]"
         >
-          <option value="">Select a sector</option>
+          <option value="" className="bg-slate-900 text-white">Select a sector</option>
           {sectors.map((s) => (
             <option key={s.id} value={s.id} className="bg-slate-900 text-white">
               {s.name}
