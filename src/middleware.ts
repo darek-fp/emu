@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/array-type */
 import { defineMiddleware } from "astro:middleware";
 import { createClient } from "@/lib/supabase";
 import type { UserRole } from "@/types";
@@ -24,7 +25,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.role = role;
 
   // Fetch operator sector assignments for operators
-  context.locals.operatorSectors = [];
+  context.locals.operatorSectors = [] as string[];
   if (user && role === "operator" && supabase) {
     // Get the operator record
     const { data: operatorData } = await supabase.from("operators").select("id").eq("user_id", user.id).single();
@@ -36,7 +37,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
         .select("sector_id")
         .eq("operator_id", operatorData.id);
 
-      context.locals.operatorSectors = assignments?.map((a) => a.sector_id) ?? [];
+      const sectorIds = (assignments as unknown as Array<{ sector_id: string }>)?.map((a) => a.sector_id) ?? [];
+      context.locals.operatorSectors = sectorIds;
     }
   }
 

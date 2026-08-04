@@ -21,10 +21,6 @@ export async function getPeakConcurrentReservations(
   sectorId: string,
   timeRange?: { start: Date; end: Date },
 ): Promise<number> {
-  if (!supabaseClient) {
-    throw new Error("Supabase client not initialized");
-  }
-
   const now = new Date();
   const startTime = timeRange?.start ?? now;
 
@@ -39,6 +35,8 @@ export async function getPeakConcurrentReservations(
     throw new Error(`Failed to query reservations: ${error.message}`);
   }
 
+  // supabase types infer `data` as non-null here; keep defensive check but suppress the rule
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!reservations) {
     return 0;
   }
@@ -85,10 +83,6 @@ export async function checkSectorConflict(
   sectorId: string,
   newSpotCount: number,
 ): Promise<ConflictInfo | null> {
-  if (!supabaseClient) {
-    throw new Error("Supabase client not initialized");
-  }
-
   // Get current sector info
   const { data: sector, error: sectorError } = await supabaseClient
     .from("sectors")
@@ -100,6 +94,7 @@ export async function checkSectorConflict(
     throw new Error(`Failed to fetch sector: ${sectorError.message}`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!sector) {
     throw new Error(`Sector with id ${sectorId} not found`);
   }

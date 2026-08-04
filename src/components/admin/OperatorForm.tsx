@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Lock } from "lucide-react";
 
 interface OperatorFormProps {
   sectors: { id: string; name: string }[];

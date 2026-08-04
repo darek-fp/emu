@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-nullish-coalescing */
 import type { APIContext } from "astro";
 import { createClient, createAdminClient } from "@/lib/supabase";
 import { z } from "zod";
@@ -84,7 +84,6 @@ export async function POST(context: APIContext): Promise<Response> {
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         message = err.errors[0].message;
       }
       console.error("[POST /api/admin/operators] Validation error:", message);
@@ -320,7 +319,7 @@ export async function GET(context: APIContext): Promise<Response> {
       id: op.id,
 
       email: op.email,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
       sectorIds: (assignments ?? []).filter((a) => a.operator_id === op.id).map((a) => a.sector_id),
 
       deactivatedAt: op.deactivated_at,
@@ -339,4 +338,3 @@ export async function GET(context: APIContext): Promise<Response> {
     });
   }
 }
-

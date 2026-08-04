@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-condition */
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
 
@@ -46,15 +46,18 @@ export async function GET(context: APIContext): Promise<Response> {
         success: true,
         count: operators?.length ?? 0,
         operators:
-          operators?.map((op) => ({
-            id: op.id,
-            email: op.email,
-            emailLength: op.email?.length ?? 0,
-            emailCharCodes: op.email?.split("").map((c) => c.charCodeAt(0)),
-            hasAuthUser: !!op.user_id,
-            createdAt: op.created_at,
-            deactivatedAt: op.deactivated_at,
-          })) ?? [],
+          operators?.map((op) => {
+            const email = typeof op.email === "string" ? op.email : "";
+            return {
+              id: op.id,
+              email,
+              emailLength: email.length,
+              emailCharCodes: email.split("").map((c) => c.charCodeAt(0)),
+              hasAuthUser: !!op.user_id,
+              createdAt: op.created_at,
+              deactivatedAt: op.deactivated_at,
+            };
+          }) ?? [],
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );
@@ -68,4 +71,3 @@ export async function GET(context: APIContext): Promise<Response> {
     );
   }
 }
-

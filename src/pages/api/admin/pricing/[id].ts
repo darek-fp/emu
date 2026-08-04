@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, no-console */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 

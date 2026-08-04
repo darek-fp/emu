@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import * as React from "react";
 
 export interface AlertDialogProps {
@@ -6,7 +7,7 @@ export interface AlertDialogProps {
   children?: React.ReactNode;
 }
 
-export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) {
+export function AlertDialog({ open: _open, onOpenChange: _onOpenChange, children }: AlertDialogProps) {
   // Minimal wrapper: consumer controls `open` state; this component only renders children.
   return <div data-alert-dialog="root">{children}</div>;
 }
@@ -33,7 +34,12 @@ export const AlertDialogDescription = ({ children, className }: { children?: Rea
   </p>
 );
 
-export const AlertDialogAction = ({ children, className, onClick, ...props }: any) => (
+export const AlertDialogAction = ({
+  children,
+  className,
+  onClick,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: React.ReactNode }) => (
   <button type="button" className={className} onClick={onClick} {...props}>
     {children}
   </button>

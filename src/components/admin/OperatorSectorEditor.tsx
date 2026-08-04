@@ -55,10 +55,10 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateForm() || !operator) {
+    if (!validateForm()) {
       return;
     }
 
@@ -76,8 +76,15 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
       if (!response.ok) {
         const text = await response.text();
         try {
-          const data = JSON.parse(text);
-          setErrors({ submit: data.error ?? "Failed to update operator sectors" });
+          const maybe = JSON.parse(text) as unknown;
+          let errMsg: string | undefined;
+          if (typeof maybe === "object" && maybe !== null) {
+            const rec = maybe as Record<string, unknown>;
+            if (typeof rec.error === "string") {
+              errMsg = rec.error;
+            }
+          }
+          setErrors({ submit: errMsg ?? `Failed to update operator sectors: ${response.statusText}` });
         } catch {
           setErrors({ submit: `Failed to update operator sectors: ${response.statusText}` });
         }
@@ -91,12 +98,12 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
       }
 
       try {
-        const data = JSON.parse(text);
+        JSON.parse(text);
         setSuccessMessage(true);
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent("operatorUpdated"));
         }, 500);
-      } catch (parseErr) {
+      } catch (_parseErr) {
         setErrors({ submit: "Invalid response format from server" });
       }
     } catch (err) {
@@ -112,6 +119,7 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
     setSelectedSectors([]);
     setErrors({});
     setSuccessMessage(false);
+    window.dispatchEvent(new CustomEvent("cancelEditForm"));
   };
 
   if (successMessage) {
@@ -119,7 +127,7 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
       <div className="space-y-6">
         <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
           <h3 className="font-medium text-green-400">Sectors Updated Successfully</h3>
-          <p className="mt-2 text-sm text-green-300">The operator's sector assignments have been updated.</p>
+          <p className="mt-2 text-sm text-green-300">The operator&apos;s sector assignments have been updated.</p>
         </div>
       </div>
     );
@@ -180,13 +188,7 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
         </button>
         <button
           type="button"
-          onClick={() => {
-            setOperator(null);
-            setSelectedSectors([]);
-            setErrors({});
-            setSuccessMessage(false);
-            window.dispatchEvent(new CustomEvent("cancelEditForm"));
-          }}
+          onClick={handleCancel}
           className="rounded-lg border border-white/20 px-6 py-2 font-medium text-white transition-colors hover:bg-white/10"
         >
           Cancel

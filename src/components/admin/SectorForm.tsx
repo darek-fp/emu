@@ -62,7 +62,7 @@ export function SectorForm({ sectors, onSuccess }: SectorFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) {

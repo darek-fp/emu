@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/prefer-nullish-coalescing */
 import { useEffect, useRef, useState } from "react";
 
 interface DiscountStep {
@@ -40,35 +40,37 @@ export function PricingTierForm({
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    const handleShowPricingForm = async (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const { sectorId, tierId } = customEvent.detail;
+    const handleShowPricingForm = (event: Event) => {
+      void (async () => {
+        const customEvent = event as CustomEvent;
+        const { sectorId, tierId } = customEvent.detail;
 
-      if (sectorId) {
-        setSelectedSectorId(sectorId);
-        // Reset form for create
-        setBaseRate(100);
-        setFloor(50);
-        setDiscountSteps([]);
-        setErrors({});
-      }
-
-      if (tierId) {
-        // Load existing tier data
-        try {
-          const response = await fetch(`/api/admin/pricing/${tierId}`);
-          if (response.ok) {
-            const tierData = await response.json();
-            setSelectedSectorId(tierData.sector_id);
-            setBaseRate(tierData.base_daily_rate);
-            setFloor(tierData.daily_floor);
-            setDiscountSteps(tierData.discount_steps || []);
-            setErrors({});
-          }
-        } catch (err) {
-          console.error("Failed to load tier data:", err);
+        if (sectorId) {
+          setSelectedSectorId(sectorId);
+          // Reset form for create
+          setBaseRate(100);
+          setFloor(50);
+          setDiscountSteps([]);
+          setErrors({});
         }
-      }
+
+        if (tierId) {
+          // Load existing tier data
+          try {
+            const response = await fetch(`/api/admin/pricing/${tierId}`);
+            if (response.ok) {
+              const tierData = await response.json();
+              setSelectedSectorId(tierData.sector_id);
+              setBaseRate(tierData.base_daily_rate);
+              setFloor(tierData.daily_floor);
+              setDiscountSteps(tierData.discount_steps || []);
+              setErrors({});
+            }
+          } catch (err) {
+            console.error("Failed to load tier data:", err);
+          }
+        }
+      })();
     };
 
     window.addEventListener("showPricingForm", handleShowPricingForm);
@@ -351,4 +353,3 @@ export function PricingTierForm({
     </form>
   );
 }
-

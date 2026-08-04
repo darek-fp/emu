@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, no-console, @typescript-eslint/prefer-nullish-coalescing */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { verifyPassword } from "@/lib/auth";
 import { z } from "zod";
 
 const signupSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .min(1)
+    .refine((v) => /^\S+@\S+\.\S+$/.test(v), { message: "Invalid email address" }),
   tempPassword: z.string().min(1, "Temporary password is required"),
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -171,7 +174,6 @@ export const POST: APIRoute = async (context) => {
   } catch (err) {
     let message = "Invalid request";
     if (err instanceof z.ZodError && err.errors.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       message = err.errors[0].message;
     }
     console.error("[Signup API] Validation error:", message);
@@ -181,4 +183,3 @@ export const POST: APIRoute = async (context) => {
     });
   }
 };
-

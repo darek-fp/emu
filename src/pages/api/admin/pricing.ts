@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-condition */
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
 import { z } from "zod";
@@ -65,7 +66,6 @@ export async function POST(context: APIContext): Promise<Response> {
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         message = err.errors[0].message;
       }
       return new Response(JSON.stringify({ success: false, error: message }), {
@@ -115,7 +115,7 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     // Create new tier
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const { data: newTier, error: createError } = await supabase
       .from("pricing_tiers")
       .insert([
