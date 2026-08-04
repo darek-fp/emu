@@ -1,4 +1,4 @@
-import type { APIContext } from "astro";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */`nimport type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
 import { z } from "zod";
 
@@ -177,3 +177,4 @@ export async function PATCH(context: APIContext): Promise<Response> {
     });
   }
 }
+

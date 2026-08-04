@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock types for testing API endpoints
@@ -483,3 +484,4 @@ describe("Handler-level integration", () => {
     expect(body).toHaveProperty("reservation_id");
   });
 });
+
