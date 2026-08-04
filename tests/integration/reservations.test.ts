@@ -430,7 +430,7 @@ vi.mock("@/lib/supabase", () => ({
     ),
 }));
 
-vi.mock("@/lib/services/PricingService", () => ({
+vi.mock("@/lib/services/pricingService", () => ({
   calculatePrice: (arrival: Date, departure: Date, tier: any) => ({
     totalPrice: 100,
     breakdown: { days: 1, base: 100 },
