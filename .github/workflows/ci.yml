@@ -18,7 +18,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run unit tests
-        run: npm run test:run -- --threads=false
+        run: npm run test:run
         env:
           CI: true
       - run: npx astro sync
