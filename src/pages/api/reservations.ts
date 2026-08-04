@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
-import { calculatePrice } from "@/lib/services/PricingService";
+import { calculatePrice } from "@/lib/services/pricingService";
 import type { Database } from "@/database.types";
 
 export const prerender = false;

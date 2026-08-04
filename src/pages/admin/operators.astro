@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars, no-console, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion, @typescript-eslint/prefer-nullish-coalescing */`n---
+---
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-non-null-assertion */
 import AdminLayout from "@/layouts/AdminLayout.astro";
 import { OperatorForm } from "@/components/admin/OperatorForm";
 import { OperatorSectorEditor } from "@/components/admin/OperatorSectorEditor";
@@ -304,4 +305,3 @@ const deactivatedOperators = operators.filter((op) => op.deactivated_at);
     });
   </script>
 </AdminLayout>
-

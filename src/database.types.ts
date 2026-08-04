@@ -87,23 +87,32 @@ export interface Database {
         Row: {
           created_at: string;
           deactivated_at: string | null;
+          email: string;
           id: string;
+          temp_password_expires_at: string | null;
+          temp_password_hash: string | null;
           updated_at: string;
-          user_id: string;
+          user_id: string | null;
         };
         Insert: {
           created_at?: string;
           deactivated_at?: string | null;
+          email?: string;
           id?: string;
+          temp_password_expires_at?: string | null;
+          temp_password_hash?: string | null;
           updated_at?: string;
-          user_id: string;
+          user_id?: string | null;
         };
         Update: {
           created_at?: string;
           deactivated_at?: string | null;
+          email?: string;
           id?: string;
+          temp_password_expires_at?: string | null;
+          temp_password_hash?: string | null;
           updated_at?: string;
-          user_id?: string;
+          user_id?: string | null;
         };
         Relationships: [];
       };
@@ -258,6 +267,15 @@ export interface Database {
     Views: Record<never, never>;
     Functions: {
       current_user_role: { Args: never; Returns: string };
+      get_operator_by_email: {
+        Args: { p_email: string };
+        Returns: {
+          id: string;
+          user_id: string | null;
+          temp_password_hash: string | null;
+          temp_password_expires_at: string | null;
+        }[];
+      };
     };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;

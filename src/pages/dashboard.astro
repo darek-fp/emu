@@ -12,7 +12,7 @@ let operatorData: Database["public"]["Tables"]["operators"]["Row"] | null = null
 let reservations: Database["public"]["Tables"]["reservations"]["Row"][] = [];
 
 // Fetch operator details and sectors
-if (user && role === "operator" && supabase && operatorSectors && operatorSectors.length > 0) {
+if (user && role === "operator" && supabase && operatorSectors.length > 0) {
   // Fetch the operator record
   const { data: opData } = await supabase.from("operators").select("*").eq("user_id", user.id).single();
   operatorData = opData;
@@ -43,7 +43,7 @@ if (user && role === "operator" && supabase && operatorSectors && operatorSector
   <div class="space-y-8">
     {/* Sectors */}
     {
-      operatorSectors && operatorSectors.length > 0 ? (
+      operatorSectors.length > 0 ? (
         <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
           <h2 class="mb-6 text-2xl font-semibold text-white">Assigned Sectors</h2>
           {sectors.length > 0 ? (

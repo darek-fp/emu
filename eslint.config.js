@@ -61,6 +61,12 @@ const reactConfig = tseslint.config({
 
 const astroConfig = tseslint.config({
   files: ["**/*.astro"],
+  languageOptions: {
+    globals: {
+      window: true,
+      document: true,
+    },
+  },
   rules: {
     // astro-eslint-parser incompatibility: no-misused-promises crashes on return statements in frontmatter.
     // Re-enable when https://github.com/ota-meshi/eslint-plugin-astro/issues/388 is resolved.
