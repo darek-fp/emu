@@ -49,9 +49,9 @@ export function generateTempPassword(): string {
 /**
  * Hash a password using a simple method (in production, use bcrypt or argon2)
  * For temp passwords, we use a basic hash so they're not stored in plaintext.
- * 
+ *
  * Note: This is a simple implementation. For production, use a proper password hashing library.
- * 
+ *
  * @param password The password to hash
  * @returns Hex-encoded hash
  */
@@ -60,20 +60,20 @@ export function hashPassword(password: string): string {
   // This is sufficient for comparing temp passwords since they're short-lived
   const combined = password + "temp_salt_key";
   let hash = 0;
-  
+
   for (let i = 0; i < combined.length; i++) {
     const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
-  
+
   // Return as hex string
   return Math.abs(hash).toString(16);
 }
 
 /**
  * Verify a password against its hash
- * 
+ *
  * @param password The plaintext password to verify
  * @param hash The stored hash to compare against
  * @returns True if password matches the hash

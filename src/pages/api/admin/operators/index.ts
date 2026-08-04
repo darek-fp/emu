@@ -106,7 +106,11 @@ export async function POST(context: APIContext): Promise<Response> {
     const { data: sectors, error: sectorError } = await supabase.from("sectors").select("id, name").in("id", sectorIds);
 
     if (sectorError || sectors?.length !== sectorIds.length) {
-      console.error("[POST /api/admin/operators] Sector verification failed:", { sectorError, foundCount: sectors?.length, requestedCount: sectorIds.length });
+      console.error("[POST /api/admin/operators] Sector verification failed:", {
+        sectorError,
+        foundCount: sectors?.length,
+        requestedCount: sectorIds.length,
+      });
       return new Response(JSON.stringify({ success: false, error: "One or more sectors not found" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -117,10 +121,10 @@ export async function POST(context: APIContext): Promise<Response> {
     const adminClient = createAdminClient();
     if (!adminClient) {
       console.error("[POST /api/admin/operators] Failed to create admin client");
-      return new Response(
-        JSON.stringify({ success: false, error: "Server configuration error" }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ success: false, error: "Server configuration error" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
@@ -135,10 +139,10 @@ export async function POST(context: APIContext): Promise<Response> {
     if (authError || !authData.user) {
       const authErrorMsg = authError?.message || "Failed to create auth user";
       console.error("[POST /api/admin/operators] Auth user creation failed:", authErrorMsg);
-      return new Response(
-        JSON.stringify({ success: false, error: `Failed to create auth user: ${authErrorMsg}` }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ success: false, error: `Failed to create auth user: ${authErrorMsg}` }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const userId = authData.user.id;
@@ -160,7 +164,7 @@ export async function POST(context: APIContext): Promise<Response> {
     if (operatorError || !operatorData?.id) {
       const operatorErrorMsg = operatorError instanceof Error ? operatorError.message : String(operatorError);
       console.error("[POST /api/admin/operators] Failed to create operator record:", operatorErrorMsg);
-      
+
       // Clean up auth user if operator creation fails
       try {
         await adminClient.auth.admin.deleteUser(userId);
@@ -200,7 +204,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Return success response with operator details
     console.log("[POST /api/admin/operators] Success response:", { operatorId, email });
-    
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -266,7 +270,7 @@ export async function GET(context: APIContext): Promise<Response> {
       });
     }
 
-     // Fetch operators
+    // Fetch operators
     let query = supabase.from("operators").select("id, email, deactivated_at, created_at");
 
     if (!includeDeactivated) {
@@ -313,7 +317,7 @@ export async function GET(context: APIContext): Promise<Response> {
 
     const operatorList: OperatorListItem[] = operators.map((op) => ({
       id: op.id,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
       email: op.email,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       sectorIds: (assignments ?? []).filter((a) => a.operator_id === op.id).map((a) => a.sector_id),

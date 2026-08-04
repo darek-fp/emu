@@ -1,10 +1,10 @@
 import * as React from "react";
 
-export type AlertDialogProps = {
+export interface AlertDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
-};
+}
 
 export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) {
   // Minimal wrapper: consumer controls `open` state; this component only renders children.

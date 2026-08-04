@@ -28,7 +28,9 @@ export function PricingTierForm({
   onCancel,
   initialTier,
 }: PricingTierFormProps) {
-  const [selectedSectorId, setSelectedSectorId] = useState(initialTier?.sectorId ?? defaultSectorId ?? sectors[0]?.id ?? "");
+  const [selectedSectorId, setSelectedSectorId] = useState(
+    initialTier?.sectorId ?? defaultSectorId ?? sectors[0]?.id ?? "",
+  );
   const [baseRate, setBaseRate] = useState(initialTier?.baseRate ?? 100);
   const [floor, setFloor] = useState(initialTier?.floor ?? 50);
   const [discountSteps, setDiscountSteps] = useState<DiscountStep[]>(initialTier?.discountSteps ?? []);
@@ -69,7 +71,9 @@ export function PricingTierForm({
     };
 
     window.addEventListener("showPricingForm", handleShowPricingForm);
-    return () => window.removeEventListener("showPricingForm", handleShowPricingForm);
+    return () => {
+      window.removeEventListener("showPricingForm", handleShowPricingForm);
+    };
   }, []);
 
   const validateForm = () => {
@@ -165,7 +169,7 @@ export function PricingTierForm({
       if (onSave) {
         onSave({ sectorId: selectedSectorId, baseRate, floor, discountSteps });
       }
-      
+
       // Dispatch event to notify form container to reload
       window.dispatchEvent(new CustomEvent("tierSaved"));
     } catch (err) {
@@ -195,9 +199,11 @@ export function PricingTierForm({
           onChange={(e) => {
             setSelectedSectorId(e.target.value);
           }}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 [color-scheme:dark] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         >
-          <option value="" className="bg-slate-900 text-white">Select a sector</option>
+          <option value="" className="bg-slate-900 text-white">
+            Select a sector
+          </option>
           {sectors.map((s) => (
             <option key={s.id} value={s.id} className="bg-slate-900 text-white">
               {s.name}
@@ -221,7 +227,7 @@ export function PricingTierForm({
           onChange={(e) => {
             setBaseRate(parseFloat(e.target.value));
           }}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         />
         {errors.baseRate && <p className="mt-1 text-sm text-red-400">{errors.baseRate}</p>}
       </div>
@@ -240,7 +246,7 @@ export function PricingTierForm({
           onChange={(e) => {
             setFloor(parseFloat(e.target.value));
           }}
-          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         />
         {errors.floor && <p className="mt-1 text-sm text-red-400">{errors.floor}</p>}
       </div>
@@ -261,7 +267,9 @@ export function PricingTierForm({
         {errors.discountSteps && <p className="mb-2 text-sm text-red-400">{errors.discountSteps}</p>}
 
         {discountSteps.length === 0 ? (
-          <p className="text-sm text-white/60">No discount steps configured. Click &quot;+ Add Step&quot; to add one.</p>
+          <p className="text-sm text-white/60">
+            No discount steps configured. Click &quot;+ Add Step&quot; to add one.
+          </p>
         ) : (
           <div className="space-y-3">
             {discountSteps.map((step, index) => (

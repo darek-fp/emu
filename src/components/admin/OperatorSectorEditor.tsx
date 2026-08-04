@@ -29,7 +29,9 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
     };
 
     window.addEventListener("editOperator", handleEditOperator);
-    return () => window.removeEventListener("editOperator", handleEditOperator);
+    return () => {
+      window.removeEventListener("editOperator", handleEditOperator);
+    };
   }, []);
 
   if (!operator) {
@@ -117,9 +119,7 @@ export function OperatorSectorEditor({ sectors }: OperatorSectorEditorProps) {
       <div className="space-y-6">
         <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
           <h3 className="font-medium text-green-400">Sectors Updated Successfully</h3>
-          <p className="mt-2 text-sm text-green-300">
-            The operator's sector assignments have been updated.
-          </p>
+          <p className="mt-2 text-sm text-green-300">The operator's sector assignments have been updated.</p>
         </div>
       </div>
     );

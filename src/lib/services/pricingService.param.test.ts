@@ -63,7 +63,7 @@ const testVectors = [
 describe("pricingService parametric vectors (independent expected fixtures)", () => {
   for (const v of testVectors) {
     it(v.name, () => {
-      const result = calculatePrice(v.arrival, v.departure, v.tier as any);
+      const result = calculatePrice(v.arrival, v.departure, v.tier);
       // Use toBeCloseTo for floating rounding safety
       expect(result.totalPrice).toBeCloseTo(v.expected, 2);
     });
