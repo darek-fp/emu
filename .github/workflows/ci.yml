@@ -17,16 +17,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Run unit tests
+        run: npm run test:run -- --threads=false
+        env:
+          CI: true
       - run: npx astro sync
       - run: npm run lint
       - run: npm run build
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      - name: Run unit tests
-        run: npm run test:run -- --threads=false
-        env:
-          CI: true
 
   deploy:
     needs: ci
