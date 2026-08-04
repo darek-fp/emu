@@ -17,12 +17,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx astro sync
+      - run: npm run lint
       - name: Run unit tests
         run: npm run test:run
         env:
           CI: true
-      - run: npx astro sync
-      - run: npm run lint
       - run: npm run build
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
