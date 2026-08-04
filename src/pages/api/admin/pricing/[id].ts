@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, no-console */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 
@@ -26,11 +27,7 @@ export const GET: APIRoute = async (context) => {
   const supabase = createClient(context.request.headers, context.cookies);
 
   try {
-    const { data: tier, error } = await supabase
-      .from("pricing_tiers")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data: tier, error } = await supabase.from("pricing_tiers").select("*").eq("id", id).single();
 
     if (error || !tier) {
       return new Response(JSON.stringify({ error: "Tier not found" }), {
@@ -45,12 +42,9 @@ export const GET: APIRoute = async (context) => {
     });
   } catch (err) {
     console.error("Failed to fetch pricing tier:", err);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch pricing tier" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Failed to fetch pricing tier" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

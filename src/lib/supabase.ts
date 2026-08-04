@@ -28,7 +28,7 @@ export function createClient(requestHeaders: Headers, cookies: AstroCookies) {
  * Create an admin-scoped Supabase client for server-side operations.
  * This client has full admin privileges and should NEVER be exposed to the client.
  * Use only for operations like creating auth users that require admin access.
- * 
+ *
  * Requires SUPABASE_SERVICE_ROLE_KEY to be set in environment.
  */
 export function createAdminClient() {
@@ -38,7 +38,7 @@ export function createAdminClient() {
 
   // Require service role key for admin operations — fail fast if not present
   if (!SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required to create admin client');
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required to create admin client");
   }
 
   return createSupabaseClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {

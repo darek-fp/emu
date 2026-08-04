@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, no-console */
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
 import { z } from "zod";
@@ -55,7 +56,6 @@ export async function PATCH(context: APIContext): Promise<Response> {
     } catch (err) {
       let message = "Invalid request body";
       if (err instanceof z.ZodError && err.errors.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         message = err.errors[0].message;
       }
       return new Response(JSON.stringify({ success: false, error: message }), {

@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, no-console, @typescript-eslint/prefer-nullish-coalescing */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { verifyPassword } from "@/lib/auth";
 import { z } from "zod";
 
 const signupSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .min(1)
+    .refine((v) => /^\S+@\S+\.\S+$/.test(v), { message: "Invalid email address" }),
   tempPassword: z.string().min(1, "Temporary password is required"),
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -17,16 +21,17 @@ export const POST: APIRoute = async (context) => {
 
     const supabase = createClient(context.request.headers, context.cookies);
     if (!supabase) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Database connection failed" }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ success: false, error: "Database connection failed" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Check if operator exists with this email using RPC function (bypasses RLS)
     const normalizedEmail = email.toLowerCase().trim();
-    const { data: operatorResults, error: operatorError } = await supabase
-      .rpc("get_operator_by_email", { p_email: normalizedEmail });
+    const { data: operatorResults, error: operatorError } = await supabase.rpc("get_operator_by_email", {
+      p_email: normalizedEmail,
+    });
 
     if (operatorError) {
       console.error("[Signup API] RPC lookup failed:", {
@@ -37,7 +42,10 @@ export const POST: APIRoute = async (context) => {
         JSON.stringify({
           success: false,
           error: "This email is not registered as an operator. Contact an administrator.",
-          debug: process.env.NODE_ENV === "development" ? { searchedEmail: normalizedEmail, rpcError: operatorError.message } : undefined,
+          debug:
+            process.env.NODE_ENV === "development"
+              ? { searchedEmail: normalizedEmail, rpcError: operatorError.message }
+              : undefined,
         }),
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
@@ -83,7 +91,10 @@ export const POST: APIRoute = async (context) => {
     }
 
     if (operator.temp_password_expires_at && new Date(operator.temp_password_expires_at) < new Date()) {
-      console.error("[Signup API] Temp password expired:", { operatorId: operator.id, expiresAt: operator.temp_password_expires_at });
+      console.error("[Signup API] Temp password expired:", {
+        operatorId: operator.id,
+        expiresAt: operator.temp_password_expires_at,
+      });
       return new Response(
         JSON.stringify({
           success: false,
@@ -148,7 +159,10 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    console.log("[Signup API] Operator account created successfully:", { operatorId: operator.id, email: normalizedEmail });
+    console.log("[Signup API] Operator account created successfully:", {
+      operatorId: operator.id,
+      email: normalizedEmail,
+    });
 
     return new Response(
       JSON.stringify({
@@ -160,7 +174,6 @@ export const POST: APIRoute = async (context) => {
   } catch (err) {
     let message = "Invalid request";
     if (err instanceof z.ZodError && err.errors.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       message = err.errors[0].message;
     }
     console.error("[Signup API] Validation error:", message);

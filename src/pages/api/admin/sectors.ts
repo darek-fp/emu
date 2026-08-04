@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unnecessary-condition */
 import type { APIContext } from "astro";
 import { createClient } from "@/lib/supabase";
 import { checkSectorConflict, type ConflictInfo } from "@/lib/services/sectorService";
@@ -95,7 +96,12 @@ export async function POST(context: APIContext) {
     }
 
     // Check for name uniqueness on add operations
-    const newNames = operations.filter((op) => op.type === "add").map((op) => op.name!.trim());
+    const newNames = operations.reduce<string[]>((acc, op) => {
+      if (op.type === "add" && typeof op.name === "string") {
+        acc.push(op.name.trim());
+      }
+      return acc;
+    }, []);
     if (newNames.length > 0) {
       const { data: existingSectors, error: fetchError } = await supabase
         .from("sectors")

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Lock } from "lucide-react";
 
 interface OperatorFormProps {
   sectors: { id: string; name: string }[];
@@ -79,14 +78,14 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
 
       const data = (await response.json()) as { success?: boolean; operatorId?: string; email?: string };
       console.log("[OperatorForm] Success response:", data);
-      
+
       // Verify required fields exist
       if (!data.operatorId || !data.email) {
         console.error("[OperatorForm] Missing required fields in response:", data);
         setErrors({ submit: "Invalid response from server - incomplete operator data" });
         return;
       }
-      
+
       setSuccessMessage(data as OperatorResponse);
       // Reset form
       setEmail("");
@@ -108,10 +107,10 @@ export function OperatorForm({ sectors, onSave }: OperatorFormProps) {
     setPassword("");
     setSelectedSectors([]);
     setErrors({});
-    
+
     // Emit a custom event so the page can close the form
     window.dispatchEvent(new CustomEvent("operatorCreated"));
-    
+
     if (onSave) {
       onSave();
     }

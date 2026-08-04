@@ -42,103 +42,107 @@ if (user && role === "operator" && supabase && operatorSectors && operatorSector
 <OperatorLayout title="Dashboard">
   <div class="space-y-8">
     {/* Sectors */}
-    {operatorSectors && operatorSectors.length > 0 ? (
-      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
-        <h2 class="mb-6 text-2xl font-semibold text-white">Assigned Sectors</h2>
-        {sectors.length > 0 ? (
-          <div class="grid gap-4 sm:grid-cols-2">
-            {sectors.map((sector) => (
-              <div class="rounded-lg border border-white/20 bg-white/5 p-4 transition-colors hover:bg-white/10">
-                <h3 class="font-semibold text-white">{sector.name}</h3>
-                <p class="mt-2 text-sm text-blue-100/70">
-                  Available spots: <span class="font-mono text-blue-100">{sector.spot_count}</span>
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p class="text-blue-100/70">No sector details available</p>
-        )}
-      </div>
-    ) : (
-      <div class="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-8">
-        <p class="text-yellow-200">You are not assigned to any sectors yet. Contact an administrator.</p>
-      </div>
-    )}
+    {
+      operatorSectors && operatorSectors.length > 0 ? (
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+          <h2 class="mb-6 text-2xl font-semibold text-white">Assigned Sectors</h2>
+          {sectors.length > 0 ? (
+            <div class="grid gap-4 sm:grid-cols-2">
+              {sectors.map((sector) => (
+                <div class="rounded-lg border border-white/20 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                  <h3 class="font-semibold text-white">{sector.name}</h3>
+                  <p class="mt-2 text-sm text-blue-100/70">
+                    Available spots: <span class="font-mono text-blue-100">{sector.spot_count}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p class="text-blue-100/70">No sector details available</p>
+          )}
+        </div>
+      ) : (
+        <div class="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-8">
+          <p class="text-yellow-200">You are not assigned to any sectors yet. Contact an administrator.</p>
+        </div>
+      )
+    }
 
     {/* Create Reservation */}
-    {sectors.length > 0 && (
-      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
-        <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-2xl font-semibold text-white">Create Reservation</h2>
-          <button
-            id="createReservationBtn"
-            type="button"
-            class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-          >
-            + New Reservation
-          </button>
-        </div>
+    {
+      sectors.length > 0 && (
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+          <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-white">Create Reservation</h2>
+            <button
+              id="createReservationBtn"
+              type="button"
+              class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+            >
+              + New Reservation
+            </button>
+          </div>
 
-        <div id="reservationFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
-          <h3 class="mb-4 text-xl font-semibold text-white">Reservation Details</h3>
-          <ReservationForm client:load sectors={sectors} />
+          <div id="reservationFormContainer" class="hidden rounded-lg border border-white/10 bg-white/5 p-6">
+            <h3 class="mb-4 text-xl font-semibold text-white">Reservation Details</h3>
+            <ReservationForm client:load sectors={sectors} />
+          </div>
         </div>
-      </div>
-    )}
+      )
+    }
 
     {/* Reservations List */}
-    {reservations.length > 0 && (
-      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
-        <h2 class="mb-6 text-2xl font-semibold text-white">Your Reservations</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm text-white">
-            <thead class="border-b border-white/10 bg-white/10">
-              <tr>
-                <th class="px-6 py-3 text-left font-semibold">Customer</th>
-                <th class="px-6 py-3 text-left font-semibold">License Plate</th>
-                <th class="px-6 py-3 text-left font-semibold">Arrival</th>
-                <th class="px-6 py-3 text-left font-semibold">Departure</th>
-                <th class="px-6 py-3 text-right font-semibold">Price</th>
-                <th class="px-6 py-3 text-center font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reservations.map((res, index) => (
-                <tr
-                  key={res.id}
-                  class:list={`border-t border-white/10 ${
-                    index % 2 === 0 ? "bg-white/0" : "bg-white/5"
-                  }`}
-                >
-                  <td class="px-6 py-4 font-medium text-white">{res.customer_name}</td>
-                  <td class="px-6 py-4">{res.license_plate}</td>
-                  <td class="px-6 py-4">{new Date(res.arrival_at).toLocaleDateString()}</td>
-                  <td class="px-6 py-4">{new Date(res.departure_at).toLocaleDateString()}</td>
-                  <td class="px-6 py-4 text-right">
-                    <span class="font-mono">${res.price_total.toFixed(2)}</span>
-                    {res.price_override && (
-                      <span class="ml-2 inline-flex items-center rounded-full bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-400">
-                        Override
-                      </span>
-                    )}
-                  </td>
-                  <td class="px-6 py-4 text-center">
-                    <span class="inline-flex items-center rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
-                      {res.status}
-                    </span>
-                  </td>
+    {
+      reservations.length > 0 && (
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+          <h2 class="mb-6 text-2xl font-semibold text-white">Your Reservations</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-white">
+              <thead class="border-b border-white/10 bg-white/10">
+                <tr>
+                  <th class="px-6 py-3 text-left font-semibold">Customer</th>
+                  <th class="px-6 py-3 text-left font-semibold">License Plate</th>
+                  <th class="px-6 py-3 text-left font-semibold">Arrival</th>
+                  <th class="px-6 py-3 text-left font-semibold">Departure</th>
+                  <th class="px-6 py-3 text-right font-semibold">Price</th>
+                  <th class="px-6 py-3 text-center font-semibold">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {reservations.map((res, index) => (
+                  <tr
+                    key={res.id}
+                    class:list={`border-t border-white/10 ${index % 2 === 0 ? "bg-white/0" : "bg-white/5"}`}
+                  >
+                    <td class="px-6 py-4 font-medium text-white">{res.customer_name}</td>
+                    <td class="px-6 py-4">{res.license_plate}</td>
+                    <td class="px-6 py-4">{new Date(res.arrival_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-4">{new Date(res.departure_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 text-right">
+                      <span class="font-mono">${res.price_total.toFixed(2)}</span>
+                      {res.price_override && (
+                        <span class="ml-2 inline-flex items-center rounded-full bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-400">
+                          Override
+                        </span>
+                      )}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                      <span class="inline-flex items-center rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
+                        {res.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    )}
+      )
+    }
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener("DOMContentLoaded", () => {
       const createReservationBtn = document.getElementById("createReservationBtn");
       const reservationFormContainer = document.getElementById("reservationFormContainer");
 

@@ -12,7 +12,7 @@ function createTestTier(
     sector_id: "test-sector-1",
     base_daily_rate: baseRate,
     daily_floor: floor,
-    discount_steps: discountSteps || [],
+    discount_steps: discountSteps ?? [],
     ended_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

@@ -188,7 +188,7 @@ Make unit tests mandatory in CI, document integration runbook, and provide a man
 
 #### Automated
 
-- [x] 1.1 Add parametrized unit tests for pricingService
+- [x] 1.1 Add parametrized unit tests for pricingService — 4a89765
 - [ ] 1.2 Ensure unit tests run and pass in CI
 
 #### Manual

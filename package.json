@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:integration": "vitest tests/integration --run"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.8",

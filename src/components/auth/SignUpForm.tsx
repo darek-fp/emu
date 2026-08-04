@@ -19,7 +19,12 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
   const [showTempPassword, setShowTempPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; tempPassword?: string; newPassword?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    tempPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(initialServerError ?? null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -57,21 +62,21 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
 
     setIsSubmitting(true);
     setServerError(null);
-    
+
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: email.trim().toLowerCase(),
           tempPassword: tempPassword.trim(),
           newPassword,
@@ -102,7 +107,10 @@ export default function SignUpForm({ serverError: initialServerError }: Props) {
       <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4 text-center">
         <h3 className="font-medium text-green-400">Success!</h3>
         <p className="mt-2 text-sm text-green-300">{successMessage}</p>
-        <a href="/auth/signin" className="mt-4 inline-block text-blue-400 transition-colors hover:text-blue-300 hover:underline">
+        <a
+          href="/auth/signin"
+          className="mt-4 inline-block text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+        >
           Go to Sign In
         </a>
       </div>
