@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, no-console */
+/* eslint-disable no-console */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 
@@ -29,7 +29,7 @@ export const GET: APIRoute = async (context) => {
   try {
     const { data: tier, error } = await supabase.from("pricing_tiers").select("*").eq("id", id).single();
 
-    if (error || !tier) {
+    if (error) {
       return new Response(JSON.stringify({ error: "Tier not found" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },

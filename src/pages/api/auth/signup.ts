@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, no-console, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, no-console, @typescript-eslint/prefer-nullish-coalescing */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { verifyPassword } from "@/lib/auth";
@@ -51,9 +51,7 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    const operator = operatorResults?.[0];
-
-    if (!operator) {
+    if (operatorResults.length === 0) {
       console.error("[Signup API] Operator lookup returned no results:", {
         searchEmail: normalizedEmail,
       });
@@ -66,6 +64,8 @@ export const POST: APIRoute = async (context) => {
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
+
+    const operator = operatorResults[0];
 
     // Check if operator already has a user_id (account already created)
     if (operator.user_id) {

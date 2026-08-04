@@ -105,8 +105,8 @@ export async function checkSectorConflict(
   // Check if reduction would create conflict
   if (newSpotCount < peakConcurrent) {
     return {
-      sectorName: sector.name as string,
-      currentSpotCount: sector.spot_count as number,
+      sectorName: sector.name,
+      currentSpotCount: sector.spot_count,
       proposedSpotCount: newSpotCount,
       activeReservations: peakConcurrent,
       reason: `Proposed spot count (${newSpotCount}) is less than peak concurrent reservations (${peakConcurrent})`,

@@ -22,7 +22,7 @@ try {
     if (queryError) {
       error = `Failed to load sectors: ${queryError.message}`;
     } else {
-      sectors = data as Sector[];
+      sectors = data;
     }
   }
 } catch (err) {
