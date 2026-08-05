@@ -193,7 +193,7 @@ Make unit tests mandatory in CI, document integration runbook, and provide a man
 
 #### Manual
 
-- [x] 1.3 Reviewer verifies sample vectors locally
+- [x] 1.3 Reviewer verifies sample vectors locally — 0ffa034
 
 ### Phase 2: Local integration tests for reservation concurrency
 
@@ -210,8 +210,8 @@ Make unit tests mandatory in CI, document integration runbook, and provide a man
 
 #### Automated
 
-- [x] 3.1 Update CI to run unit tests
+- [x] 3.1 Update CI to run unit tests — 0ffa034
 
 #### Manual
 
-- [x] 3.2 Add runbook/docs and manual verification checklist
+- [x] 3.2 Add runbook/docs and manual verification checklist — 0ffa034
