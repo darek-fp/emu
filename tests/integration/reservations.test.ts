@@ -418,6 +418,7 @@ function makeMockSupabase(pricingTierData: any = null, insertResult: any = null,
         order: (_col: string, _opts: any) => selectChain().order(_col, _opts),
       };
     },
+    rpc: (_fn: string, _args: Record<string, unknown>) => Promise.resolve({ data: insertResult, error: null }),
   };
 }
 

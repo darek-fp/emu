@@ -189,7 +189,7 @@ Make unit tests mandatory in CI, document integration runbook, and provide a man
 #### Automated
 
 - [x] 1.1 Add parametrized unit tests for pricingService — 4a89765
-- [ ] 1.2 Ensure unit tests run and pass in CI
+- [x] 1.2 Ensure unit tests run and pass in CI - cd3d708
 
 #### Manual
 
@@ -199,12 +199,12 @@ Make unit tests mandatory in CI, document integration runbook, and provide a man
 
 #### Automated
 
-- [ ] 2.1 Provide Docker test-harness and migration runner
-- [ ] 2.2 Add concurrency integration test that demonstrates single-success/one-fail behavior
+- [x] 2.1 Provide Docker test-harness and migration runner
+- [x] 2.2 Add concurrency integration test that demonstrates single-success/one-fail behavior
 
 #### Manual
 
-- [ ] 2.3 Developer runs integration script locally and confirms DB state
+- [x] 2.3 Developer runs integration script locally and confirms DB state
 
 ### Phase 3: Docs & CI updates
 

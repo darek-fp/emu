@@ -267,6 +267,38 @@ export interface Database {
     Views: Record<never, never>;
     Functions: {
       current_user_role: { Args: never; Returns: string };
+      create_reservation_locked: {
+        Args: {
+          p_sector_id: string;
+          p_arrival_at: string;
+          p_departure_at: string;
+          p_customer_name: string;
+          p_license_plate: string;
+          p_pricing_tier_id: string;
+          p_created_by_operator_id: string;
+          p_price_total: number;
+          p_price_override: boolean;
+        };
+        Returns: {
+          id: string;
+          sector_id: string;
+          customer_name: string;
+          license_plate: string;
+          arrival_at: string;
+          departure_at: string;
+          price_total: number;
+          price_override: boolean;
+          status: string;
+          is_paid: boolean;
+          arrived_at: string | null;
+          departed_at: string | null;
+          anonymized_at: string | null;
+          pricing_tier_id: string;
+          created_by_operator_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+      };
       get_operator_by_email: {
         Args: { p_email: string };
         Returns: {

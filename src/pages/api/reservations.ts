@@ -6,8 +6,6 @@ import type { Database } from "@/database.types";
 
 export const prerender = false;
 
-type ReservationInsert = Database["public"]["Tables"]["reservations"]["Insert"];
-
 export const POST: APIRoute = async (context) => {
   const user = context.locals.user;
   const role = context.locals.role;
@@ -109,30 +107,39 @@ export const POST: APIRoute = async (context) => {
 
     // Use override price if provided, otherwise use calculated price
     const finalPrice = priceOverride ?? calculatedPrice;
+    const priceOverrideFlag = priceOverride !== undefined && priceOverride !== calculatedPrice;
 
-    // Create reservation
-    const reservationData: ReservationInsert = {
-      sector_id: sectorId,
-      arrival_at: arrivalAt,
-      departure_at: departureAt,
-      customer_name: customerName,
-      license_plate: licensePlate,
-      pricing_tier_id: pricingTier.id,
-      created_by_operator_id: operator.id,
-      price_total: finalPrice,
-      price_override: priceOverride !== undefined && priceOverride !== calculatedPrice,
-      status: "confirmed",
-    };
-
+    // Create the reservation via a DB-locked RPC: it locks the sector row (SELECT ... FOR
+    // UPDATE) and re-checks overlapping-reservation capacity inside the same transaction as
+    // the insert, so two concurrent requests for the same sector/window cannot both succeed.
     type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
-    const insertResp = (await supabase.from("reservations").insert([reservationData]).select().single()) as unknown as {
+    const rpcResp = (await supabase.rpc("create_reservation_locked", {
+      p_sector_id: sectorId,
+      p_arrival_at: arrivalAt,
+      p_departure_at: departureAt,
+      p_customer_name: customerName,
+      p_license_plate: licensePlate,
+      p_pricing_tier_id: pricingTier.id,
+      p_created_by_operator_id: operator.id,
+      p_price_total: finalPrice,
+      p_price_override: priceOverrideFlag,
+    })) as unknown as {
       data: ReservationRow | null;
-      error?: unknown;
+      error?: { code?: string; message?: string } | null;
     };
 
-    const reservation = insertResp.data;
+    const reservation = rpcResp.data;
     if (!reservation) {
-      console.error("Reservation creation error:", insertResp.error);
+      // P0001 is the ERRCODE raised by create_reservation_locked when the sector has no
+      // available capacity for the requested window (the overbooking-prevention path).
+      if (rpcResp.error?.code === "P0001") {
+        return new Response(JSON.stringify({ error: "Sector has no available capacity for the requested window" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      console.error("Reservation creation error:", rpcResp.error);
       return new Response(JSON.stringify({ error: "Failed to create reservation" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
