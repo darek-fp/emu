@@ -193,25 +193,25 @@ Make unit tests mandatory in CI, document integration runbook, and provide a man
 
 #### Manual
 
-- [ ] 1.3 Reviewer verifies sample vectors locally
+- [x] 1.3 Reviewer verifies sample vectors locally
 
 ### Phase 2: Local integration tests for reservation concurrency
 
 #### Automated
 
-- [x] 2.1 Provide Docker test-harness and migration runner
-- [x] 2.2 Add concurrency integration test that demonstrates single-success/one-fail behavior
+- [x] 2.1 Provide Docker test-harness and migration runner — e5f1939
+- [x] 2.2 Add concurrency integration test that demonstrates single-success/one-fail behavior — e5f1939
 
 #### Manual
 
-- [x] 2.3 Developer runs integration script locally and confirms DB state
+- [x] 2.3 Developer runs integration script locally and confirms DB state — e5f1939
 
 ### Phase 3: Docs & CI updates
 
 #### Automated
 
-- [ ] 3.1 Update CI to run unit tests
+- [x] 3.1 Update CI to run unit tests
 
 #### Manual
 
-- [ ] 3.2 Add runbook/docs and manual verification checklist
+- [x] 3.2 Add runbook/docs and manual verification checklist

@@ -132,14 +132,18 @@ describeIfConfigured("Reservation concurrency (overbooking prevention)", () => {
     const statuses = [responseA.status, responseB.status].sort((a, b) => a - b);
     expect(statuses).toEqual([201, 409]);
 
-    // Confirm no double booking landed in the DB either.
+    // Confirm no double booking landed in the DB either. Cleanup in afterAll removes this
+    // fixture data afterwards, so print it here for manual verification via the test log
+    // (rather than requiring a separate, post-hoc DB query against already-cleaned-up rows).
     const { data: reservations, error } = await admin
       .from("reservations")
-      .select("id")
+      .select("id, sector_id, arrival_at, departure_at, status")
       .eq("sector_id", sectorId)
       .in("status", ["confirmed", "arrived"]);
     expect(error).toBeNull();
     expect(reservations).toHaveLength(1);
+    // eslint-disable-next-line no-console
+    console.log("[concurrency test] reservations active for sector after concurrent attempts:", reservations);
 
     vi.doUnmock("@/lib/supabase");
   });
