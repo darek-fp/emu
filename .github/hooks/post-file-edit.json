@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "matcher": "edit|create|apply_patch|str_replace_editor",
+        "bash": "npx eslint --fix . --quiet",
+        "powershell": "npx eslint --fix . --quiet",
+        "cwd": ".",
+        "timeoutSec": 45
+      }
+    ]
+  }
+}
